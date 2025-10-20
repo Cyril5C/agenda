@@ -1,0 +1,168 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                   RÉSUMÉ : DÉPLOIEMENT SÉCURISÉ                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🚨 PROBLÈME IDENTIFIÉ DANS VOTRE COMMANDE ORIGINALE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ Ancienne commande (DANGEREUX) :
+
+   mirror -R . .
+
+   Cette commande envoie TOUS les fichiers, y compris :
+   - Le fichier .env avec vos identifiants et config locale
+   - Les scripts de développement (.sh)
+   - Les logs locaux
+   - Les fichiers système (.DS_Store, .git, etc.)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ✅ SOLUTION : NOUVELLE COMMANDE SÉCURISÉE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Nouvelle commande (SÉCURISÉ) :
+
+   mirror -R --exclude-glob-from=.lftpignore . .
+
+   Cette commande exclut automatiquement :
+   - .env (votre config locale)
+   - Scripts de dev (*.sh)
+   - Documentation (*.md)
+   - Logs locaux
+   - Fichiers système
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 📋 UTILISATION PRATIQUE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ÉTAPE 1 : Tester le déploiement (simulation)
+───────────────────────────────────────────────────────────────────────
+   ./deploy-test.sh
+
+   ➜ Affiche ce qui sera envoyé SANS envoyer les fichiers
+   ➜ Permet de vérifier les exclusions
+
+
+ÉTAPE 2 : Déployer en production
+───────────────────────────────────────────────────────────────────────
+   ./deploy-prod.sh
+
+   ➜ Demande confirmation avant d'envoyer
+   ➜ Envoie uniquement les fichiers nécessaires
+   ➜ Rappelle les étapes post-déploiement
+
+
+ÉTAPE 3 : Configurer le serveur de production
+───────────────────────────────────────────────────────────────────────
+   1. Créer le fichier .env sur le serveur :
+      
+      APP_ENV=prod
+      APP_DEBUG=false
+      CORS_ORIGIN=https://votredomaine.com
+
+   2. Créer le dossier logs/ :
+      
+      mkdir pm/logs
+      chmod 755 pm/logs
+
+   3. Vérifier que .htaccess protège bien .env
+
+
+ÉTAPE 4 : Vérifier que tout fonctionne
+───────────────────────────────────────────────────────────────────────
+   curl https://votredomaine.com/pm/api.php
+   ➜ Doit retourner du JSON
+
+   curl https://votredomaine.com/pm/.env
+   ➜ Doit retourner 403 Forbidden
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 📦 CE QUI EST ENVOYÉ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Fichiers PHP
+   • api.php
+   • upload.php
+   • images.php
+   • config.php
+
+✅ Fichiers HTML
+   • index.html
+   • admin.html
+
+✅ Données
+   • evenements.json
+   • images/ (dossier)
+
+✅ Sécurité
+   • .htaccess
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🚫 CE QUI EST EXCLU (NON envoyé)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ Configuration locale
+   • .env (IMPORTANT !)
+   • .env.example
+   • .env.production
+
+❌ Scripts de développement
+   • start-dev.sh
+   • switch-env.sh
+   • deploy-prod.sh
+   • deploy-test.sh
+
+❌ Documentation
+   • README.md
+   • QUICK_START.md
+   • DEPLOY.md
+   • *.txt
+
+❌ Fichiers système
+   • .DS_Store
+   • .git/
+   • .gitignore
+   • logs/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🔐 SÉCURITÉ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️  Le fichier .env contient des données sensibles :
+   - Configuration de l'environnement
+   - Clés API (si vous en ajoutez)
+   - Identifiants (si vous en ajoutez)
+
+⚠️  NE JAMAIS envoyer le .env local en production !
+   Créez un .env spécifique sur le serveur de production.
+
+✅  Le fichier .htaccess protège automatiquement :
+   - .env (403 Forbidden)
+   - config.php (403 Forbidden)
+   - logs/ (403 Forbidden)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 📚 DOCUMENTATION COMPLÈTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📖 DEPLOY.md           Guide complet de déploiement
+📖 README.md           Documentation générale
+📖 QUICK_START.md      Démarrage rapide
+📖 FILES_SENT_TO_PROD.txt  Liste détaillée des fichiers
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 💡 AIDE-MÉMOIRE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Commande                Action
+───────────────────────────────────────────────────────────────────────
+./start-dev.sh          Démarre le serveur local (dev)
+./deploy-test.sh        Simule le déploiement (aucun envoi)
+./deploy-prod.sh        Déploie en production
+./switch-env.sh dev     Passe en mode développement
+./switch-env.sh prod    Passe en mode production
+./switch-env.sh         Affiche la config actuelle
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  ✅ Votre déploiement est maintenant SÉCURISÉ !                      ║
+╚══════════════════════════════════════════════════════════════════════╝

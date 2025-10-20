@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planning Papou Mamine</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+        }
+
+        table {
+            width: 100%;
+            height: 50vh;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+            font-size: 0.9rem;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            vertical-align: top;
+            overflow-y: auto;
+        }
+
+        .postit {
+            border: 1px solid #e6d070;
+            padding: 10px;
+            margin: 5px 0;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            font-weight: bold;
+        }
+
+        .postit-heure {
+            font-size: 1rem;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .postit-titre {
+            font-size: 1.5rem;
+        }
+
+        .galerie {
+            height: 50vh;
+            padding: 0;
+            display: flex;
+            gap: 0;
+            overflow: hidden;
+            background-color: #f5f5f5;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .galerie img {
+            flex: 1;
+            height: 50vh;
+            min-width: 0;
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .galerie img:hover {
+            transform: scale(1.02);
+        }
+
+        @media (max-width: 768px) {
+            th {
+                padding: 10px 5px;
+                font-size: 0.7rem;
+            }
+
+            .galerie {
+                height: 40vh;
+            }
+
+            .galerie img {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr id="dates"></tr>
+        </thead>
+        <tbody>
+            <tr id="content"></tr>
+        </tbody>
+    </table>
+
+    <div class="galerie" id="galerie"></div>
+
+    <script>
+        // Rafraîchir la page toutes les 5 minutes (300000 millisecondes)
+        setTimeout(() => {
+            location.reload();
+        }, 300000);
+
+        const jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+        const mois = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+        const datesRow = document.getElementById('dates');
+        const contentRow = document.getElementById('content');
+
+        // Charger les événements depuis le fichier JSON (avec cache-busting)
+        fetch('evenements.json?t=' + new Date().getTime())
+            .then(response => response.json())
+            .then(evenements => {
+                console.log('Événements chargés:', evenements);
+
+                // Créer les colonnes pour les 8 jours glissants à partir d'aujourd'hui
+                for (let i = 0; i < 8; i++) {
+                    const date = new Date();
+                    date.setDate(date.getDate() + i);
+
+                    const jour = jours[date.getDay()];
+                    const numeroJour = date.getDate();
+                    const nomMois = mois[date.getMonth()];
+
+                    // Format de date YYYY-MM-DD pour comparaison
+                    const dateStr = date.toISOString().split('T')[0];
+
+                    const th = document.createElement('th');
+                    th.innerHTML = `${jour}<br>${numeroJour} ${nomMois}`;
+                    datesRow.appendChild(th);
+
+                    const td = document.createElement('td');
+
+                    // Collecter tous les événements (dates fixes et récurrents)
+                    const eventsForDay = [];
+
+                    // Ajouter les événements avec date fixe
+                    evenements
+                        .filter(evt => evt.date === dateStr)
+                        .forEach(evt => eventsForDay.push(evt));
+
+                    // Ajouter les événements récurrents
+                    evenements
+                        .filter(evt => evt.recurrent && evt.recurrent.includes(jour))
+                        .forEach(evt => {
+                            console.log(`Événement récurrent trouvé pour ${jour}:`, evt);
+                            eventsForDay.push(evt);
+                        });
+
+                    // Trier par heure et afficher
+                    eventsForDay
+                        .sort((a, b) => a.heure.localeCompare(b.heure))
+                        .forEach(evt => {
+                            const postit = document.createElement('div');
+                            postit.className = 'postit';
+                            postit.style.backgroundColor = evt.couleur || '#feff9c';
+
+                            const heure = document.createElement('div');
+                            heure.className = 'postit-heure';
+                            heure.textContent = evt.heure;
+                            postit.appendChild(heure);
+
+                            const titre = document.createElement('div');
+                            titre.className = 'postit-titre';
+                            titre.textContent = evt.titre;
+                            postit.appendChild(titre);
+
+                            td.appendChild(postit);
+                        });
+
+                    contentRow.appendChild(td);
+                }
+            })
+            .catch(error => console.error('Erreur de chargement des événements:', error));
+
+        // Charger les images du répertoire "images"
+        fetch('images.php?t=' + new Date().getTime())
+            .then(response => response.json())
+            .then(images => {
+                const galerie = document.getElementById('galerie');
+
+                images.forEach(filename => {
+                    const img = document.createElement('img');
+                    img.src = 'images/' + filename;
+                    img.alt = filename;
+                    galerie.appendChild(img);
+                });
+            })
+            .catch(error => console.error('Erreur de chargement des images:', error));
+    </script>
+</body>
+</html>

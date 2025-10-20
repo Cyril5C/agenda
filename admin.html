@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des événements</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="time"],
+        input[type="date"],
+        input[type="color"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 5px;
+        }
+
+        button {
+            background-color: #2c3e50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #34495e;
+        }
+
+        .type-selector {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .type-selector label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+        }
+
+        .type-selector input[type="radio"] {
+            margin-right: 8px;
+        }
+
+        #recurrentFields,
+        #dateFields {
+            display: none;
+        }
+
+        .events-list {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .event-item {
+            border-left: 4px solid #2c3e50;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            position: relative;
+        }
+
+        .event-item button {
+            width: auto;
+            padding: 5px 15px;
+            background-color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .event-item button:hover {
+            background-color: #c0392b;
+        }
+
+        .image-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .image-item .image-info {
+            padding: 10px;
+            background-color: #f9f9f9;
+            font-size: 12px;
+            word-break: break-all;
+        }
+
+        .image-item button {
+            width: 100%;
+            padding: 8px;
+            background-color: #e74c3c;
+            font-size: 12px;
+            margin-top: 0;
+        }
+
+        .image-item button:hover {
+            background-color: #c0392b;
+        }
+
+        .message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gestion des événements</h1>
+
+    <div id="message" class="message"></div>
+
+    <div class="form-container">
+        <h2>Ajouter un événement</h2>
+        <form id="eventForm">
+            <div class="form-group">
+                <label>Type d'événement</label>
+                <div class="type-selector">
+                    <label>
+                        <input type="radio" name="eventType" value="date" checked onchange="toggleEventType()">
+                        Date fixe
+                    </label>
+                    <label>
+                        <input type="radio" name="eventType" value="recurrent" onchange="toggleEventType()">
+                        Récurrent
+                    </label>
+                </div>
+            </div>
+
+            <div id="dateFields">
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" name="date">
+                </div>
+            </div>
+
+            <div id="recurrentFields">
+                <div class="form-group">
+                    <label>Jours de récurrence</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="jours" value="Lundi"> Lundi</label>
+                        <label><input type="checkbox" name="jours" value="Mardi"> Mardi</label>
+                        <label><input type="checkbox" name="jours" value="Mercredi"> Mercredi</label>
+                        <label><input type="checkbox" name="jours" value="Jeudi"> Jeudi</label>
+                        <label><input type="checkbox" name="jours" value="Vendredi"> Vendredi</label>
+                        <label><input type="checkbox" name="jours" value="Samedi"> Samedi</label>
+                        <label><input type="checkbox" name="jours" value="Dimanche"> Dimanche</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="heure">Heure</label>
+                <input type="time" id="heure" name="heure" required>
+            </div>
+
+            <div class="form-group">
+                <label for="titre">Titre</label>
+                <input type="text" id="titre" name="titre" required>
+            </div>
+
+            <div class="form-group">
+                <label for="couleur">Couleur</label>
+                <input type="color" id="couleur" name="couleur" value="#feff9c">
+            </div>
+
+            <button type="submit">Ajouter l'événement</button>
+        </form>
+    </div>
+
+    <div class="events-list">
+        <h2>Événements existants</h2>
+        <div id="eventsList"></div>
+    </div>
+
+    <div class="form-container" style="margin-top: 30px;">
+        <h2>Gestion des images</h2>
+
+        <div class="form-group">
+            <label for="imageUpload">Ajouter une image</label>
+            <input type="file" id="imageUpload" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" multiple>
+            <button onclick="uploadImages()" style="margin-top: 10px;">Upload</button>
+        </div>
+
+        <h3 style="margin-top: 30px;">Images existantes</h3>
+        <div id="imagesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        function toggleEventType() {
+            const type = document.querySelector('input[name="eventType"]:checked').value;
+            const dateFields = document.getElementById('dateFields');
+            const recurrentFields = document.getElementById('recurrentFields');
+
+            if (type === 'date') {
+                dateFields.style.display = 'block';
+                recurrentFields.style.display = 'none';
+                document.getElementById('date').required = true;
+            } else {
+                dateFields.style.display = 'none';
+                recurrentFields.style.display = 'block';
+                document.getElementById('date').required = false;
+            }
+        }
+
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = 'message ' + type;
+            message.style.display = 'block';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 5000);
+        }
+
+        function loadEvents() {
+            fetch('api.php?t=' + new Date().getTime())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur HTTP: ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    // Afficher la réponse brute pour debug
+                    console.log('Réponse API:', text);
+
+                    // Parser le JSON
+                    let events;
+                    try {
+                        events = JSON.parse(text);
+                    } catch (e) {
+                        console.error('Erreur de parsing JSON:', e);
+                        console.error('Texte reçu:', text);
+                        throw new Error('Réponse invalide de l\'API');
+                    }
+
+                    const eventsList = document.getElementById('eventsList');
+                    eventsList.innerHTML = '';
+
+                    if (!Array.isArray(events) || events.length === 0) {
+                        eventsList.innerHTML = '<p>Aucun événement pour le moment.</p>';
+                        return;
+                    }
+
+                    events.forEach((event, index) => {
+                        const eventDiv = document.createElement('div');
+                        eventDiv.className = 'event-item';
+                        eventDiv.style.borderLeftColor = event.couleur;
+
+                        let dateInfo = '';
+                        if (event.date) {
+                            dateInfo = `<strong>Date:</strong> ${event.date}<br>`;
+                        } else if (event.recurrent) {
+                            dateInfo = `<strong>Récurrent:</strong> ${event.recurrent.join(', ')}<br>`;
+                        }
+
+                        eventDiv.innerHTML = `
+                            ${dateInfo}
+                            <strong>Heure:</strong> ${event.heure}<br>
+                            <strong>Titre:</strong> ${event.titre}<br>
+                            <strong>Couleur:</strong> <span style="background-color: ${event.couleur}; padding: 2px 10px; border-radius: 3px;">${event.couleur}</span><br>
+                            <button onclick="deleteEvent(${index})">Supprimer</button>
+                        `;
+
+                        eventsList.appendChild(eventDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur complète:', error);
+                    const eventsList = document.getElementById('eventsList');
+                    eventsList.innerHTML = `<p style="color: #721c24;">Erreur de chargement des événements: ${error.message}</p>`;
+                    showMessage('Erreur de chargement des événements: ' + error.message, 'error');
+                });
+        }
+
+        function deleteEvent(index) {
+            if (!confirm('Voulez-vous vraiment supprimer cet événement ?')) {
+                return;
+            }
+
+            fetch('api.php', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ index: index })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Événement supprimé avec succès', 'success');
+                    loadEvents();
+                } else {
+                    showMessage('Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showMessage('Erreur lors de la suppression', 'error');
+            });
+        }
+
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const type = document.querySelector('input[name="eventType"]:checked').value;
+            const event = {
+                heure: document.getElementById('heure').value,
+                titre: document.getElementById('titre').value,
+                couleur: document.getElementById('couleur').value
+            };
+
+            if (type === 'date') {
+                event.date = document.getElementById('date').value;
+                if (!event.date) {
+                    showMessage('Veuillez sélectionner une date', 'error');
+                    return;
+                }
+            } else {
+                const joursChecked = Array.from(document.querySelectorAll('input[name="jours"]:checked'))
+                    .map(cb => cb.value);
+                if (joursChecked.length === 0) {
+                    showMessage('Veuillez sélectionner au moins un jour', 'error');
+                    return;
+                }
+                event.recurrent = joursChecked;
+            }
+
+            // Envoyer l'événement à l'API PHP
+            fetch('api.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(event)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Événement ajouté avec succès !', 'success');
+                    loadEvents();
+
+                    // Réinitialiser le formulaire
+                    document.getElementById('eventForm').reset();
+                    document.getElementById('couleur').value = '#feff9c';
+                    toggleEventType();
+                } else {
+                    showMessage('Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showMessage('Erreur lors de l\'ajout de l\'événement', 'error');
+            });
+        });
+
+        // Charger les images
+        function loadImages() {
+            fetch('images.php?t=' + new Date().getTime())
+                .then(response => response.json())
+                .then(images => {
+                    const imagesList = document.getElementById('imagesList');
+                    imagesList.innerHTML = '';
+
+                    if (images.length === 0) {
+                        imagesList.innerHTML = '<p>Aucune image pour le moment.</p>';
+                        return;
+                    }
+
+                    images.forEach(filename => {
+                        const imageDiv = document.createElement('div');
+                        imageDiv.className = 'image-item';
+
+                        imageDiv.innerHTML = `
+                            <img src="images/${filename}" alt="${filename}">
+                            <div class="image-info">${filename}</div>
+                            <button onclick="deleteImage('${filename}')">Supprimer</button>
+                        `;
+
+                        imagesList.appendChild(imageDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    showMessage('Erreur de chargement des images', 'error');
+                });
+        }
+
+        // Upload d'images
+        function uploadImages() {
+            const fileInput = document.getElementById('imageUpload');
+            const files = fileInput.files;
+
+            if (files.length === 0) {
+                showMessage('Veuillez sélectionner au moins une image', 'error');
+                return;
+            }
+
+            let uploadCount = 0;
+            let errorCount = 0;
+
+            Array.from(files).forEach(file => {
+                const formData = new FormData();
+                formData.append('image', file);
+
+                fetch('upload.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        uploadCount++;
+                    } else {
+                        errorCount++;
+                        console.error('Erreur upload:', data.error);
+                    }
+
+                    // Quand tous les uploads sont terminés
+                    if (uploadCount + errorCount === files.length) {
+                        if (uploadCount > 0) {
+                            showMessage(`${uploadCount} image(s) uploadée(s) avec succès`, 'success');
+                            loadImages();
+                            fileInput.value = '';
+                        }
+                        if (errorCount > 0) {
+                            showMessage(`${errorCount} erreur(s) lors de l'upload`, 'error');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    errorCount++;
+                    if (uploadCount + errorCount === files.length) {
+                        showMessage('Erreur lors de l\'upload', 'error');
+                    }
+                });
+            });
+        }
+
+        // Supprimer une image
+        function deleteImage(filename) {
+            if (!confirm(`Voulez-vous vraiment supprimer l'image "${filename}" ?`)) {
+                return;
+            }
+
+            fetch('upload.php', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ filename: filename })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Image supprimée avec succès', 'success');
+                    loadImages();
+                } else {
+                    showMessage('Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showMessage('Erreur lors de la suppression', 'error');
+            });
+        }
+
+        // Initialiser
+        toggleEventType();
+        loadEvents();
+        loadImages();
+    </script>
+</body>
+</html>

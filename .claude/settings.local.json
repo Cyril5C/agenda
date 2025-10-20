@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s https://papoumamine.cincet.net/info.php)",
+      "Bash(curl -s https://cincet.net/pm/api.php)",
+      "Bash(curl -s https://cincet.net/pm/info.php)",
+      "Bash(curl -s https://cincet.net/pm/ping.php)",
+      "Bash(curl -I https://cincet.net/)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,9 @@
+# Configuration Nixpacks pour Railway
+[phases.setup]
+nixPkgs = ["php81", "nginx"]
+
+[phases.build]
+cmds = ["echo 'Build complete'"]
+
+[start]
+cmd = "php -S 0.0.0.0:${PORT:-8000}"

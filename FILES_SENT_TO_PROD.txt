@@ -1,0 +1,79 @@
+═══════════════════════════════════════════════════════════════
+  FICHIERS ENVOYÉS EN PRODUCTION
+═══════════════════════════════════════════════════════════════
+
+✅ FICHIERS PHP (Code backend)
+  - api.php                  (API REST des événements)
+  - upload.php              (Upload/suppression d'images)
+  - images.php              (Liste des images)
+  - config.php              (Configuration centralisée)
+
+✅ FICHIERS HTML (Interface utilisateur)
+  - index.html              (Page d'accueil)
+  - admin.html              (Interface d'administration)
+
+✅ FICHIERS DE DONNÉES
+  - evenements.json         (Base de données JSON)
+  - images/                 (Dossier des images uploadées)
+
+✅ FICHIERS DE SÉCURITÉ
+  - .htaccess               (Protection Apache)
+
+═══════════════════════════════════════════════════════════════
+  FICHIERS EXCLUS (NON envoyés en production)
+═══════════════════════════════════════════════════════════════
+
+❌ CONFIGURATION LOCALE
+  - .env                     (Config de développement - NE JAMAIS ENVOYER!)
+  - .env.example            (Template)
+  - .env.production         (Template pour la prod)
+
+❌ SCRIPTS DE DÉVELOPPEMENT
+  - start-dev.sh            (Démarre serveur local)
+  - switch-env.sh           (Bascule dev/prod)
+  - deploy-prod.sh          (Script de déploiement)
+  - deploy-test.sh          (Test de déploiement)
+
+❌ DOCUMENTATION
+  - README.md               (Documentation générale)
+  - QUICK_START.md          (Guide de démarrage)
+  - DEPLOY.md               (Guide de déploiement)
+  - FILES_SENT_TO_PROD.txt  (Ce fichier)
+
+❌ FICHIERS SYSTÈME
+  - .DS_Store               (macOS)
+  - Thumbs.db               (Windows)
+  - .git/                   (Git)
+  - .gitignore             (Git)
+
+❌ LOGS LOCAUX
+  - logs/                   (Les logs seront créés sur le serveur)
+  - *.log
+
+❌ FICHIERS DE CONFIGURATION LFTP
+  - .lftpignore            (Liste des exclusions)
+
+═══════════════════════════════════════════════════════════════
+  À FAIRE SUR LE SERVEUR APRÈS DÉPLOIEMENT
+═══════════════════════════════════════════════════════════════
+
+1. Créer le fichier .env en mode PRODUCTION
+   APP_ENV=prod
+   APP_DEBUG=false
+   CORS_ORIGIN=https://votredomaine.com
+
+2. Créer le dossier logs/
+   mkdir pm/logs
+   chmod 755 pm/logs
+
+3. Vérifier les permissions
+   chmod 644 pm/*.php pm/*.html pm/*.json
+   chmod 600 pm/.env
+   chmod 644 pm/.htaccess
+
+4. Tester l'application
+   - Ouvrir https://votredomaine.com/pm/index.html
+   - Tester l'API : curl https://votredomaine.com/pm/api.php
+   - Vérifier que .env est protégé (403 Forbidden)
+
+═══════════════════════════════════════════════════════════════

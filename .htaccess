@@ -1,0 +1,99 @@
+# Configuration Apache pour sécuriser l'application
+
+# ============================================
+# VERSION PHP - OVH
+# ============================================
+# Forcer PHP 8.1 (recommandé)
+SetEnv PHP_VER 8.1
+
+# Alternative si 8.1 non disponible :
+# SetEnv PHP_VER 8.0
+# SetEnv PHP_VER 7.4
+
+# ============================================
+# SÉCURITÉ
+# ============================================
+
+# Protéger le fichier .env
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files ".env.example">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Protéger les fichiers de configuration
+<Files "config.php">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Protéger les logs
+<FilesMatch "\.(log|txt)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protéger les fichiers git
+<FilesMatch "^\.git">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protéger les scripts shell
+<FilesMatch "\.(sh|bash)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Bloquer l'accès au dossier logs
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^logs/ - [F,L]
+</IfModule>
+
+# Activer la compression (optionnel, pour de meilleures performances)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Cache pour les fichiers statiques (optionnel)
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType text/javascript "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+</IfModule>
+
+# Sécurité additionnelle
+<IfModule mod_headers.c>
+    # Prévenir le clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # Prévenir le sniffing de type MIME
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Activer la protection XSS du navigateur
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Désactiver l'affichage du contenu des répertoires
+Options -Indexes
+
+# Protection contre les injections
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Bloquer les requêtes avec des caractères suspects dans l'URL
+    RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+    RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+    RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2})
+    RewriteRule .* - [F,L]
+</IfModule>

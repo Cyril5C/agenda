@@ -1,0 +1,33 @@
+# Fichiers de configuration avec données sensibles
+.env
+.env.local
+.env.production
+
+# Logs
+logs/
+*.log
+
+# Fichiers systèmes
+.DS_Store
+Thumbs.db
+
+# Données uploadées (optionnel - à commenter si vous voulez versionner les images)
+images/*.jpg
+images/*.jpeg
+images/*.png
+images/*.gif
+images/*.webp
+
+# Données JSON (optionnel - à commenter si vous voulez versionner les événements)
+# evenements.json
+
+# Fichiers temporaires
+*.tmp
+*.bak
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
