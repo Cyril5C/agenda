@@ -51,16 +51,32 @@ $config = [
         'error_reporting' => E_ALL,
         'display_errors' => true,
         'log_file' => __DIR__ . '/logs/app.log',
+        // Cloudinary (optionnel en dev)
+        'use_cloudinary' => getenv('CLOUDINARY_CLOUD_NAME') ? true : false,
+        'cloudinary' => [
+            'cloud_name' => getenv('CLOUDINARY_CLOUD_NAME'),
+            'api_key' => getenv('CLOUDINARY_API_KEY'),
+            'api_secret' => getenv('CLOUDINARY_API_SECRET'),
+            'folder' => 'agenda_dev', // Dossier dans Cloudinary
+        ],
     ],
     'prod' => [
-        'db_file' => __DIR__ . '/home/cincetnefq/www/pm/evenements.json',
-        'upload_dir' => __DIR__ . '/home/cincetnefq/www/pm/images/',
+        'db_file' => __DIR__ . '/evenements.json',
+        'upload_dir' => __DIR__ . '/images/',
         'upload_max_size' => 10 * 1024 * 1024, // 10MB
         'allowed_image_types' => ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
-        'cors_origin' => getenv('CORS_ORIGIN') ?: 'https://www.cincet.net/pm',
+        'cors_origin' => getenv('CORS_ORIGIN') ?: 'https://papoumamine.cincet.net',
         'error_reporting' => E_ALL & ~E_NOTICE & ~E_DEPRECATED,
         'display_errors' => false,
-        'log_file' => __DIR__ . '/home/cincetnefq/www/pm/logs/app.log',
+        'log_file' => __DIR__ . '/logs/app.log',
+        // Cloudinary (activé en prod)
+        'use_cloudinary' => true,
+        'cloudinary' => [
+            'cloud_name' => getenv('CLOUDINARY_CLOUD_NAME'),
+            'api_key' => getenv('CLOUDINARY_API_KEY'),
+            'api_secret' => getenv('CLOUDINARY_API_SECRET'),
+            'folder' => 'agenda_prod', // Dossier dans Cloudinary
+        ],
     ]
 ];
 

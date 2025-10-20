@@ -1,28 +1,62 @@
-# Gestion des Environnements - Application PM
+# Application Agenda PM
 
-Ce projet dispose désormais d'un système de gestion des environnements (développement/production).
+Application web de gestion d'événements avec calendrier, déployée sur Railway.app.
+
+## Démarrage Rapide
+
+### En local
+```bash
+./start-dev.sh
+```
+Puis ouvrez http://localhost:8000
+
+### En production
+L'application est déployée automatiquement sur Railway : https://votre-url.railway.app
 
 ## Configuration
 
 ### 1. Fichiers de configuration
 
-- **[config.php](config.php)** : Fichier principal de configuration qui gère les environnements
-- **[.env](.env)** : Fichier de configuration d'environnement (non versionné)
-- **[.env.example](.env.example)** : Exemple de fichier de configuration
+- **[config.php](config.php)** : Fichier principal de configuration
+- **[.env](.env)** : Configuration locale (non versionné)
+- **[.env.example](.env.example)** : Template de configuration
 
 ### 2. Installation
 
-1. Copiez le fichier `.env.example` en `.env` :
+1. Copiez `.env.example` en `.env` :
    ```bash
    cp .env.example .env
    ```
 
-2. Modifiez les valeurs dans `.env` selon votre environnement :
+2. Éditez `.env` selon vos besoins :
    ```env
-   APP_ENV=dev          # Valeurs possibles : dev, prod
-   APP_DEBUG=true       # true pour activer le debug, false pour le désactiver
-   CORS_ORIGIN=*        # En production, mettez votre domaine : https://votredomaine.com
+   APP_ENV=dev
+   APP_DEBUG=true
+   CORS_ORIGIN=*
+
+   # Cloudinary (optionnel en dev, requis en prod)
+   CLOUDINARY_CLOUD_NAME=votre-cloud-name
+   CLOUDINARY_API_KEY=votre-api-key
+   CLOUDINARY_API_SECRET=votre-api-secret
    ```
+
+## Gestion des Images avec Cloudinary
+
+L'application utilise **Cloudinary** pour stocker les images en production (nécessaire sur Railway car le système de fichiers est éphémère).
+
+### Configuration Cloudinary
+
+1. **Créez un compte gratuit** sur https://cloudinary.com/users/register_free
+2. **Récupérez vos identifiants** dans Dashboard > Account Details
+3. **Ajoutez-les dans `.env`** (local) ou dans Railway Variables (production)
+
+**Voir le guide complet** : [CLOUDINARY_SETUP.md](CLOUDINARY_SETUP.md)
+
+### Test de configuration
+```bash
+php test-cloudinary.php
+# ou via le navigateur : http://localhost:8000/test-cloudinary.php
+```
 
 ## Environnements
 
