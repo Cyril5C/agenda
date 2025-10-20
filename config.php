@@ -34,37 +34,17 @@ define('APP_DEBUG', getenv('APP_DEBUG') === 'true' || APP_ENV === 'dev');
 $config = [
     'dev' => [
         'db_file' => __DIR__ . '/evenements.json',
-        'upload_dir' => __DIR__ . '/images/',
-        'upload_max_size' => 10 * 1024 * 1024, // 10MB
-        'allowed_image_types' => ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
         'cors_origin' => '*',
         'error_reporting' => E_ALL,
         'display_errors' => true,
         'log_file' => __DIR__ . '/logs/app.log',
-        'use_cloudinary' => getenv('CLOUDINARY_CLOUD_NAME') ? true : false,
-        'cloudinary' => [
-            'cloud_name' => getenv('CLOUDINARY_CLOUD_NAME'),
-            'api_key' => getenv('CLOUDINARY_API_KEY'),
-            'api_secret' => getenv('CLOUDINARY_API_SECRET'),
-            'folder' => 'agenda_dev',
-        ],
     ],
     'prod' => [
         'db_file' => __DIR__ . '/evenements.json',
-        'upload_dir' => __DIR__ . '/images/',
-        'upload_max_size' => 10 * 1024 * 1024, // 10MB
-        'allowed_image_types' => ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
-        'cors_origin' => getenv('CORS_ORIGIN') ?: '*', // Permissif par défaut, définir CORS_ORIGIN sur Railway pour restreindre
+        'cors_origin' => getenv('CORS_ORIGIN') ?: '*',
         'error_reporting' => E_ALL & ~E_NOTICE & ~E_DEPRECATED,
         'display_errors' => false,
         'log_file' => __DIR__ . '/logs/app.log',
-        'use_cloudinary' => true,
-        'cloudinary' => [
-            'cloud_name' => getenv('CLOUDINARY_CLOUD_NAME'),
-            'api_key' => getenv('CLOUDINARY_API_KEY'),
-            'api_secret' => getenv('CLOUDINARY_API_SECRET'),
-            'folder' => 'agenda_prod',
-        ],
     ]
 ];
 

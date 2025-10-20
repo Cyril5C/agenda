@@ -33,30 +33,16 @@ L'application est déployée automatiquement sur Railway : https://votre-url.rai
    APP_ENV=dev
    APP_DEBUG=true
    CORS_ORIGIN=*
-
-   # Cloudinary (optionnel en dev, requis en prod)
-   CLOUDINARY_CLOUD_NAME=votre-cloud-name
-   CLOUDINARY_API_KEY=votre-api-key
-   CLOUDINARY_API_SECRET=votre-api-secret
    ```
 
-## Gestion des Images avec Cloudinary
+## Gestion des Images
 
-L'application utilise **Cloudinary** pour stocker les images en production (nécessaire sur Railway car le système de fichiers est éphémère).
+Les images fonctionnent par **URL externe**. Lors de la création d'un événement, vous pouvez coller l'URL d'une image hébergée ailleurs :
+- Votre propre serveur
+- Services d'hébergement d'images (Imgur, etc.)
+- N'importe quelle URL d'image publique
 
-### Configuration Cloudinary
-
-1. **Créez un compte gratuit** sur https://cloudinary.com/users/register_free
-2. **Récupérez vos identifiants** dans Dashboard > Account Details
-3. **Ajoutez-les dans `.env`** (local) ou dans Railway Variables (production)
-
-**Voir le guide complet** : [CLOUDINARY_SETUP.md](CLOUDINARY_SETUP.md)
-
-### Test de configuration
-```bash
-php test-cloudinary.php
-# ou via le navigateur : http://localhost:8000/test-cloudinary.php
-```
+**Exemple** : `https://example.com/mon-image.jpg`
 
 ## Environnements
 
