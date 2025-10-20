@@ -183,16 +183,26 @@
             })
             .catch(error => console.error('Erreur de chargement des événements:', error));
 
-        // Charger les images du répertoire "images"
+        // Charger les images depuis l'API
         fetch('images.php?t=' + new Date().getTime())
             .then(response => response.json())
-            .then(images => {
+            .then(data => {
                 const galerie = document.getElementById('galerie');
+                galerie.innerHTML = ''; // Vider la galerie
 
-                images.forEach(filename => {
+                if (!data.success || !data.images || data.images.length === 0) {
+                    console.log('Aucune image à afficher');
+                    return;
+                }
+
+                data.images.forEach(image => {
                     const img = document.createElement('img');
-                    img.src = 'images/' + filename;
-                    img.alt = filename;
+                    img.src = image.url;
+                    img.alt = image.titre || 'Image';
+                    img.title = image.titre || '';
+                    img.onerror = function() {
+                        this.style.display = 'none'; // Masquer les images cassées
+                    };
                     galerie.appendChild(img);
                 });
             })

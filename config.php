@@ -34,6 +34,7 @@ define('APP_DEBUG', getenv('APP_DEBUG') === 'true' || APP_ENV === 'dev');
 $config = [
     'dev' => [
         'db_file' => __DIR__ . '/evenements.json',
+        'images_file' => __DIR__ . '/images.json',
         'cors_origin' => '*',
         'error_reporting' => E_ALL,
         'display_errors' => true,
@@ -41,6 +42,7 @@ $config = [
     ],
     'prod' => [
         'db_file' => __DIR__ . '/evenements.json',
+        'images_file' => __DIR__ . '/images.json',
         'cors_origin' => getenv('CORS_ORIGIN') ?: '*',
         'error_reporting' => E_ALL & ~E_NOTICE & ~E_DEPRECATED,
         'display_errors' => false,

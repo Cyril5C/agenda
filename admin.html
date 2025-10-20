@@ -131,12 +131,39 @@
             background-color: #c0392b;
         }
 
-        .event-item img {
-            max-width: 100%;
-            height: auto;
-            margin-top: 10px;
-            border-radius: 4px;
+        .image-item {
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .image-item .image-info {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .image-item button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .image-item button:hover {
+            background-color: #c0392b;
         }
 
         .message {
@@ -218,11 +245,6 @@
                 <input type="color" id="couleur" name="couleur" value="#feff9c">
             </div>
 
-            <div class="form-group">
-                <label for="imageUrl">URL de l'image (optionnel)</label>
-                <input type="url" id="imageUrl" name="imageUrl" placeholder="https://exemple.com/image.jpg">
-            </div>
-
             <button type="submit">Ajouter l'événement</button>
         </form>
     </div>
@@ -230,6 +252,27 @@
     <div class="events-list">
         <h2>Événements existants</h2>
         <div id="eventsList"></div>
+    </div>
+
+    <div class="form-container" style="margin-top: 30px;">
+        <h2>Galerie d'images</h2>
+
+        <form id="imageForm" style="margin-bottom: 20px;">
+            <div class="form-group">
+                <label for="imageUrl">URL de l'image</label>
+                <input type="url" id="imageUrl" name="imageUrl" placeholder="https://exemple.com/image.jpg" required>
+            </div>
+
+            <div class="form-group">
+                <label for="imageTitre">Titre de l'image (optionnel)</label>
+                <input type="text" id="imageTitre" name="imageTitre" placeholder="Description de l'image">
+            </div>
+
+            <button type="submit">Ajouter l'image</button>
+        </form>
+
+        <h3 style="margin-top: 30px;">Images existantes</h3>
+        <div id="imagesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;"></div>
     </div>
 
     <script>
@@ -301,17 +344,11 @@
                             dateInfo = `<strong>Récurrent:</strong> ${event.recurrent.join(', ')}<br>`;
                         }
 
-                        let imageHtml = '';
-                        if (event.imageUrl) {
-                            imageHtml = `<img src="${event.imageUrl}" alt="${event.titre}" onerror="this.style.display='none'">`;
-                        }
-
                         eventDiv.innerHTML = `
                             ${dateInfo}
                             <strong>Heure:</strong> ${event.heure}<br>
                             <strong>Titre:</strong> ${event.titre}<br>
                             <strong>Couleur:</strong> <span style="background-color: ${event.couleur}; padding: 2px 10px; border-radius: 3px;">${event.couleur}</span><br>
-                            ${imageHtml}
                             <button onclick="deleteEvent(${index})">Supprimer</button>
                         `;
 
@@ -360,8 +397,7 @@
             const event = {
                 heure: document.getElementById('heure').value,
                 titre: document.getElementById('titre').value,
-                couleur: document.getElementById('couleur').value,
-                imageUrl: document.getElementById('imageUrl').value
+                couleur: document.getElementById('couleur').value
             };
 
             if (type === 'date') {
@@ -408,9 +444,95 @@
             });
         });
 
+        // Gestion des images
+        document.getElementById('imageForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            addImage();
+        });
+
+        function addImage() {
+            const url = document.getElementById('imageUrl').value;
+            const titre = document.getElementById('imageTitre').value;
+
+            fetch('images.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url, titre })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Image ajoutée !');
+                    document.getElementById('imageForm').reset();
+                    loadImages();
+                } else {
+                    alert('Erreur : ' + (data.error || 'Erreur inconnue'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de l\'ajout de l\'image');
+            });
+        }
+
+        function loadImages() {
+            fetch('images.php?t=' + new Date().getTime())
+                .then(response => response.json())
+                .then(data => {
+                    const imagesList = document.getElementById('imagesList');
+                    imagesList.innerHTML = '';
+
+                    if (!data.success || data.images.length === 0) {
+                        imagesList.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #999;">Aucune image pour le moment.</p>';
+                        return;
+                    }
+
+                    data.images.forEach(image => {
+                        const imageDiv = document.createElement('div');
+                        imageDiv.className = 'image-item';
+
+                        imageDiv.innerHTML = `
+                            <img src="${image.url}" alt="${image.titre || 'Image'}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'150\\'><rect fill=\\'%23ddd\\' width=\\'200\\' height=\\'150\\'/><text x=\\'50%\\' y=\\'50%\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23999\\'>Image non disponible</text></svg>'">
+                            ${image.titre ? `<div class="image-info"><strong>${image.titre}</strong></div>` : ''}
+                            <div class="image-info">${image.url}</div>
+                            <button onclick="deleteImage('${image.id}')">Supprimer</button>
+                        `;
+
+                        imagesList.appendChild(imageDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur chargement images:', error);
+                    document.getElementById('imagesList').innerHTML = '<p>Erreur lors du chargement des images</p>';
+                });
+        }
+
+        function deleteImage(id) {
+            if (!confirm('Supprimer cette image ?')) return;
+
+            fetch('images.php', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadImages();
+                } else {
+                    alert('Erreur : ' + (data.error || 'Erreur inconnue'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la suppression');
+            });
+        }
+
         // Initialiser
         toggleEventType();
         loadEvents();
+        loadImages();
     </script>
 </body>
 </html>
