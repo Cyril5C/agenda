@@ -106,6 +106,16 @@
     <div class="galerie" id="galerie"></div>
 
     <script>
+        // Détecter l'environnement et mettre à jour le titre
+        fetch('env.php?t=' + new Date().getTime())
+            .then(response => response.json())
+            .then(data => {
+                if (data.env === 'dev') {
+                    document.title = '[DEV] ' + document.title;
+                }
+            })
+            .catch(error => console.error('Erreur chargement environnement:', error));
+
         // Rafraîchir la page toutes les 5 minutes (300000 millisecondes)
         setTimeout(() => {
             location.reload();

@@ -276,6 +276,16 @@
     </div>
 
     <script>
+        // Détecter l'environnement et mettre à jour le titre
+        fetch('env.php?t=' + new Date().getTime())
+            .then(response => response.json())
+            .then(data => {
+                if (data.env === 'dev') {
+                    document.title = '[DEV] ' + document.title;
+                }
+            })
+            .catch(error => console.error('Erreur chargement environnement:', error));
+
         function toggleEventType() {
             const type = document.querySelector('input[name="eventType"]:checked').value;
             const dateFields = document.getElementById('dateFields');
