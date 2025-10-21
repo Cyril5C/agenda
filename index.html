@@ -28,6 +28,14 @@
             font-size: 2rem;
         }
 
+        th.aujourd-hui {
+            background-color: #87CEEB;
+        }
+
+        th.aujourd-hui .label-aujourdhui {
+            font-size: 1rem;
+        }
+
         td {
             border: 1px solid #ddd;
             padding: 10px;
@@ -117,7 +125,7 @@
             .catch(error => console.error('Erreur chargement environnement:', error));
 
         // Rafraîchir la page toutes les 5 minutes (300000 millisecondes)
-        setTimeout(() => {
+        setInterval(() => {
             location.reload();
         }, 300000);
 
@@ -146,7 +154,13 @@
                     const dateStr = date.toISOString().split('T')[0];
 
                     const th = document.createElement('th');
-                    th.innerHTML = `${jour}<br>${numeroJour} ${nomMois}`;
+                    // Ajouter "Aujourd'hui" pour la première colonne
+                    if (i === 0) {
+                        th.className = 'aujourd-hui';
+                        th.innerHTML = `<span class="label-aujourdhui">Aujourd'hui</span><br>${jour}<br>${numeroJour} ${nomMois}`;
+                    } else {
+                        th.innerHTML = `${jour}<br>${numeroJour} ${nomMois}`;
+                    }
                     datesRow.appendChild(th);
 
                     const td = document.createElement('td');
