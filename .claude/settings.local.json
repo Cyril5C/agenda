@@ -5,7 +5,8 @@
       "Bash(curl -s https://cincet.net/pm/api.php)",
       "Bash(curl -s https://cincet.net/pm/info.php)",
       "Bash(curl -s https://cincet.net/pm/ping.php)",
-      "Bash(curl -I https://cincet.net/)"
+      "Bash(curl -I https://cincet.net/)",
+      "Bash(git add -A)"
     ],
     "deny": [],
     "ask": []
