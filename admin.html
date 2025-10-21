@@ -332,14 +332,48 @@
                         return;
                     }
 
+                    // Séparer les événements par type
+                    const eventsWithDate = [];
+                    const eventsRecurrent = [];
+
                     events.forEach((event, index) => {
+                        event.originalIndex = index; // Garder l'index original pour la suppression
+                        if (event.date) {
+                            eventsWithDate.push(event);
+                        } else if (event.recurrent) {
+                            eventsRecurrent.push(event);
+                        }
+                    });
+
+                    // Trier les événements à date fixe du plus récent au plus ancien
+                    eventsWithDate.sort((a, b) => {
+                        return new Date(b.date) - new Date(a.date);
+                    });
+
+                    // Fonction pour formater la date en texte
+                    function formatDateToText(dateString) {
+                        const jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+                        const mois = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+                        const date = new Date(dateString + 'T00:00:00');
+                        const jour = jours[date.getDay()];
+                        const numeroJour = date.getDate();
+                        const moisTexte = mois[date.getMonth()];
+                        const annee = date.getFullYear();
+
+                        return `${jour} ${numeroJour} ${moisTexte} ${annee}`;
+                    }
+
+                    // Fonction pour afficher un événement
+                    function displayEvent(event) {
                         const eventDiv = document.createElement('div');
                         eventDiv.className = 'event-item';
                         eventDiv.style.borderLeftColor = event.couleur;
 
                         let dateInfo = '';
                         if (event.date) {
-                            dateInfo = `<strong>Date:</strong> ${event.date}<br>`;
+                            const dateTexte = formatDateToText(event.date);
+                            dateInfo = `<strong>Date:</strong> ${dateTexte}<br>`;
                         } else if (event.recurrent) {
                             dateInfo = `<strong>Récurrent:</strong> ${event.recurrent.join(', ')}<br>`;
                         }
@@ -349,11 +383,33 @@
                             <strong>Heure:</strong> ${event.heure}<br>
                             <strong>Titre:</strong> ${event.titre}<br>
                             <strong>Couleur:</strong> <span style="background-color: ${event.couleur}; padding: 2px 10px; border-radius: 3px;">${event.couleur}</span><br>
-                            <button onclick="deleteEvent(${index})">Supprimer</button>
+                            <button onclick="deleteEvent(${event.originalIndex})">Supprimer</button>
                         `;
 
                         eventsList.appendChild(eventDiv);
-                    });
+                    }
+
+                    // Afficher les événements à date fixe (triés)
+                    if (eventsWithDate.length > 0) {
+                        const titleDate = document.createElement('h3');
+                        titleDate.textContent = 'Événements à date fixe (' + eventsWithDate.length + ')';
+                        titleDate.style.marginTop = '20px';
+                        titleDate.style.color = '#2c3e50';
+                        eventsList.appendChild(titleDate);
+
+                        eventsWithDate.forEach(displayEvent);
+                    }
+
+                    // Afficher les événements récurrents
+                    if (eventsRecurrent.length > 0) {
+                        const titleRecurrent = document.createElement('h3');
+                        titleRecurrent.textContent = 'Événements récurrents (' + eventsRecurrent.length + ')';
+                        titleRecurrent.style.marginTop = '30px';
+                        titleRecurrent.style.color = '#2c3e50';
+                        eventsList.appendChild(titleRecurrent);
+
+                        eventsRecurrent.forEach(displayEvent);
+                    }
                 })
                 .catch(error => {
                     console.error('Erreur complète:', error);
