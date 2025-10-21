@@ -19,7 +19,8 @@ images/*.gif
 images/*.webp
 
 # Données JSON (optionnel - à commenter si vous voulez versionner les événements)
-# evenements.json
+evenements.json
+images.json
 
 # Fichiers temporaires
 *.tmp
