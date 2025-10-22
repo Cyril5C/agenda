@@ -94,6 +94,15 @@
                             postit.className = 'postit';
                             postit.style.backgroundColor = evt.couleur || '#feff9c';
 
+                            // Ajouter une icône pour les événements récurrents
+                            if (evt.recurrent) {
+                                const icon = document.createElement('div');
+                                icon.className = 'postit-recurrent-icon';
+                                icon.textContent = '∞';
+                                icon.title = 'Événement récurrent : ' + evt.recurrent.join(', ');
+                                postit.appendChild(icon);
+                            }
+
                             const heure = document.createElement('div');
                             heure.className = 'postit-heure';
                             heure.textContent = evt.heure;

@@ -42,6 +42,15 @@ td {
     margin: 5px 0;
     box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
     font-weight: bold;
+    position: relative;
+}
+
+.postit-recurrent-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 1.2rem;
+    opacity: 0.6;
 }
 
 .postit-heure {
