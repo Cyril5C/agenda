@@ -28,7 +28,13 @@ L'application est déployée automatiquement sur Railway : https://votre-url.rai
    cp .env.example .env
    ```
 
-2. Éditez `.env` selon vos besoins :
+2. Initialisez les fichiers de données :
+   ```bash
+   ./init-data.sh
+   ```
+   Ce script crée les fichiers JSON nécessaires (`evenements.json`, `images.json`, `infos.json`) à partir des exemples.
+
+3. Éditez `.env` selon vos besoins :
    ```env
    APP_ENV=dev
    APP_DEBUG=true
@@ -99,22 +105,47 @@ Toutes les configurations sont centralisées dans [config.php](config.php) :
 - Les erreurs sensibles ne sont pas affichées en production
 - CORS configurable par environnement
 
+## Gestion des données
+
+⚠️ **Important** : Les fichiers de données JSON ne sont **pas versionnés** dans Git pour éviter les conflits entre développement et production.
+
+### Fichiers de données (NON versionnés)
+- `evenements.json` - Événements de l'agenda
+- `images.json` - Liste des images de la galerie
+- `infos.json` - Informations diverses affichées
+
+### Fichiers d'exemple (versionnés)
+- `evenements.json.example` - Structure de base des événements
+- `images.json.example` - Structure de base des images
+- `infos.json.example` - Structure de base des informations
+
+### Script d'initialisation
+Le script `init-data.sh` copie automatiquement les fichiers exemple lors de la première installation :
+```bash
+./init-data.sh
+```
+
 ## Structure des fichiers
 
 ```
 pm/
-├── config.php           # Configuration principale
-├── .env                 # Variables d'environnement (NON versionné)
-├── .env.example         # Exemple de configuration
-├── .gitignore           # Fichiers à ignorer par Git
-├── api.php              # API des événements (utilise config.php)
-├── upload.php           # Upload d'images (utilise config.php)
-├── images.php           # Gestion des images
-├── admin.html           # Interface d'administration
-├── index.html           # Page d'accueil
-├── evenements.json      # Base de données JSON
-├── images/              # Dossier des images uploadées
-└── logs/                # Dossier des logs (créé automatiquement)
+├── config.php                  # Configuration principale
+├── .env                        # Variables d'environnement (NON versionné)
+├── .env.example                # Exemple de configuration
+├── .gitignore                  # Fichiers à ignorer par Git
+├── init-data.sh                # Script d'initialisation des données
+├── api.php                     # API des événements
+├── infos.php                   # API des informations diverses
+├── images.php                  # API des images
+├── admin.html                  # Interface d'administration
+├── index.html                  # Page d'accueil
+├── evenements.json             # Données événements (NON versionné)
+├── evenements.json.example     # Exemple de données événements
+├── images.json                 # Données images (NON versionné)
+├── images.json.example         # Exemple de données images
+├── infos.json                  # Données informations (NON versionné)
+├── infos.json.example          # Exemple de données informations
+└── logs/                       # Dossier des logs (créé automatiquement)
 ```
 
 ## Utilisation de la configuration dans le code

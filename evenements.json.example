@@ -1,0 +1,14 @@
+[
+    {
+        "date": "2025-01-15",
+        "heure": "10:00",
+        "titre": "Événement exemple à date fixe",
+        "couleur": "#feff9c"
+    },
+    {
+        "recurrent": ["Lundi", "Mercredi", "Vendredi"],
+        "heure": "14:00",
+        "titre": "Événement récurrent exemple",
+        "couleur": "#ffcccb"
+    }
+]
