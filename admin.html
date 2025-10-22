@@ -12,7 +12,7 @@
     <div id="message" class="message"></div>
 
     <div class="form-container">
-        <h2>Ajouter un événement</h2>
+        <h2 id="formTitle">Ajouter un événement</h2>
         <form id="eventForm">
             <div class="form-group">
                 <label>Type d'événement</label>
@@ -65,7 +65,8 @@
                 <input type="color" id="couleur" name="couleur" value="#feff9c">
             </div>
 
-            <button type="submit">Ajouter l'événement</button>
+            <button type="submit" id="submitButton">Ajouter l'événement</button>
+            <button type="button" id="cancelButton" onclick="cancelEdit()" style="display: none; background-color: #95a5a6; margin-top: 10px;">Annuler</button>
         </form>
     </div>
 
@@ -96,6 +97,9 @@
     </div>
 
     <script>
+        // Variable globale pour stocker l'index de l'événement en cours de modification
+        let editingEventIndex = null;
+
         // Détecter l'environnement et mettre à jour le titre
         fetch('env.php?t=' + new Date().getTime())
             .then(response => response.json())
@@ -213,6 +217,7 @@
                             <strong>Heure:</strong> ${event.heure}<br>
                             <strong>Titre:</strong> ${event.titre}<br>
                             <strong>Couleur:</strong> <span style="background-color: ${event.couleur}; padding: 2px 10px; border-radius: 3px;">${event.couleur}</span><br>
+                            <button onclick="editEvent(${event.originalIndex})" style="background-color: #3498db; margin-right: 10px;">Modifier</button>
                             <button onclick="deleteEvent(${event.originalIndex})">Supprimer</button>
                         `;
 
@@ -247,6 +252,64 @@
                     eventsList.innerHTML = `<p style="color: #721c24;">Erreur de chargement des événements: ${error.message}</p>`;
                     showMessage('Erreur de chargement des événements: ' + error.message, 'error');
                 });
+        }
+
+        function editEvent(index) {
+            // Charger les événements
+            fetch('api.php?t=' + new Date().getTime())
+                .then(response => response.json())
+                .then(events => {
+                    const event = events[index];
+                    if (!event) {
+                        showMessage('Événement non trouvé', 'error');
+                        return;
+                    }
+
+                    // Stocker l'index en cours de modification
+                    editingEventIndex = index;
+
+                    // Changer le titre du formulaire et les boutons
+                    document.getElementById('formTitle').textContent = 'Modifier l\'événement';
+                    document.getElementById('submitButton').textContent = 'Enregistrer les modifications';
+                    document.getElementById('cancelButton').style.display = 'block';
+
+                    // Pré-remplir le formulaire
+                    document.getElementById('heure').value = event.heure;
+                    document.getElementById('titre').value = event.titre;
+                    document.getElementById('couleur').value = event.couleur || '#feff9c';
+
+                    // Sélectionner le bon type d'événement
+                    if (event.date) {
+                        document.querySelector('input[name="eventType"][value="date"]').checked = true;
+                        document.getElementById('date').value = event.date;
+                        toggleEventType();
+                    } else if (event.recurrent) {
+                        document.querySelector('input[name="eventType"][value="recurrent"]').checked = true;
+                        toggleEventType();
+
+                        // Cocher les jours récurrents
+                        document.querySelectorAll('input[name="jours"]').forEach(cb => {
+                            cb.checked = event.recurrent.includes(cb.value);
+                        });
+                    }
+
+                    // Scroller vers le formulaire
+                    document.getElementById('eventForm').scrollIntoView({ behavior: 'smooth' });
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    showMessage('Erreur lors du chargement de l\'événement', 'error');
+                });
+        }
+
+        function cancelEdit() {
+            editingEventIndex = null;
+            document.getElementById('formTitle').textContent = 'Ajouter un événement';
+            document.getElementById('submitButton').textContent = 'Ajouter l\'événement';
+            document.getElementById('cancelButton').style.display = 'none';
+            document.getElementById('eventForm').reset();
+            document.getElementById('couleur').value = '#feff9c';
+            toggleEventType();
         }
 
         function deleteEvent(index) {
@@ -302,9 +365,19 @@
                 event.recurrent = joursChecked;
             }
 
+            // Déterminer si on modifie ou ajoute
+            const isEditing = editingEventIndex !== null;
+            const method = isEditing ? 'PUT' : 'POST';
+            const successMessage = isEditing ? 'Événement modifié avec succès !' : 'Événement ajouté avec succès !';
+
+            // Ajouter l'index si on modifie
+            if (isEditing) {
+                event.index = editingEventIndex;
+            }
+
             // Envoyer l'événement à l'API PHP
             fetch('api.php', {
-                method: 'POST',
+                method: method,
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -313,20 +386,18 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showMessage('Événement ajouté avec succès !', 'success');
+                    showMessage(successMessage, 'success');
                     loadEvents();
 
                     // Réinitialiser le formulaire
-                    document.getElementById('eventForm').reset();
-                    document.getElementById('couleur').value = '#feff9c';
-                    toggleEventType();
+                    cancelEdit();
                 } else {
                     showMessage('Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
                 }
             })
             .catch(error => {
                 console.error('Erreur:', error);
-                showMessage('Erreur lors de l\'ajout de l\'événement', 'error');
+                showMessage('Erreur lors de l\'enregistrement de l\'événement', 'error');
             });
         });
 

@@ -4,7 +4,7 @@ require_once __DIR__ . '/config.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: ' . config('cors_origin'));
-header('Access-Control-Allow-Methods: GET, POST, DELETE');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
 header('Access-Control-Allow-Headers: Content-Type');
 
 $jsonFile = config('db_file');
@@ -60,6 +60,61 @@ if ($method === 'GET') {
         http_response_code(500);
         echo json_encode(['error' => 'Erreur lors de l\'enregistrement']);
         logError('Erreur lors de l\'enregistrement d\'un événement', $input);
+    }
+
+} elseif ($method === 'PUT') {
+    // Modifier un événement existant
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    if (!isset($input['index']) || !is_numeric($input['index'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Index invalide']);
+        exit;
+    }
+
+    if (!isset($input['heure']) || !isset($input['titre'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Données invalides']);
+        exit;
+    }
+
+    // Valider que c'est soit une date fixe, soit récurrent
+    if (!isset($input['date']) && !isset($input['recurrent'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Date ou récurrence requise']);
+        exit;
+    }
+
+    $events = getEvents();
+    $index = intval($input['index']);
+
+    if ($index < 0 || $index >= count($events)) {
+        http_response_code(404);
+        echo json_encode(['error' => 'Événement non trouvé']);
+        exit;
+    }
+
+    // Créer l'événement modifié (sans l'index)
+    $updatedEvent = [
+        'heure' => $input['heure'],
+        'titre' => $input['titre'],
+        'couleur' => $input['couleur'] ?? '#feff9c'
+    ];
+
+    if (isset($input['date'])) {
+        $updatedEvent['date'] = $input['date'];
+    } elseif (isset($input['recurrent'])) {
+        $updatedEvent['recurrent'] = $input['recurrent'];
+    }
+
+    // Remplacer l'événement
+    $events[$index] = $updatedEvent;
+
+    if (saveEvents($events)) {
+        echo json_encode(['success' => true, 'message' => 'Événement modifié']);
+    } else {
+        http_response_code(500);
+        echo json_encode(['error' => 'Erreur lors de la modification']);
     }
 
 } elseif ($method === 'DELETE') {

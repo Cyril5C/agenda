@@ -124,6 +124,14 @@ button:hover {
     background-color: #c0392b;
 }
 
+.event-item button[style*="background-color: #3498db"] {
+    background-color: #3498db !important;
+}
+
+.event-item button[style*="background-color: #3498db"]:hover {
+    background-color: #2980b9 !important;
+}
+
 .image-item {
     background-color: white;
     border-radius: 8px;
