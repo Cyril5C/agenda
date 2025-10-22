@@ -87,6 +87,36 @@ td {
     transform: scale(1.02);
 }
 
+.infos-encart {
+    position: absolute;
+    top: calc(50vh + 10px);
+    left: 10px;
+    width: 25%;
+    background-color: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: none;
+    z-index: 1000;
+}
+
+.infos-titre {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: #856404;
+    border-bottom: 1px solid #ffc107;
+    padding-bottom: 5px;
+}
+
+.infos-texte {
+    font-size: 0.95rem;
+    color: #333;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
 @media (max-width: 768px) {
     th {
         padding: 10px 5px;

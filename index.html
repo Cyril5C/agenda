@@ -16,6 +16,8 @@
         </tbody>
     </table>
 
+    <div class="infos-encart" id="infosEncart"></div>
+
     <div class="galerie" id="galerie"></div>
 
     <script>
@@ -145,6 +147,27 @@
                 });
             })
             .catch(error => console.error('Erreur de chargement des images:', error));
+
+        // Charger les informations diverses
+        fetch('infos.php?t=' + new Date().getTime())
+            .then(response => response.json())
+            .then(data => {
+                const infosEncart = document.getElementById('infosEncart');
+
+                if (data.success && data.texte && data.texte.trim() !== '') {
+                    infosEncart.innerHTML = `
+                        <div class="infos-titre">ℹ️ Informations</div>
+                        <div class="infos-texte">${data.texte}</div>
+                    `;
+                    infosEncart.style.display = 'block';
+                } else {
+                    infosEncart.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Erreur de chargement des informations:', error);
+                document.getElementById('infosEncart').style.display = 'none';
+            });
     </script>
 </body>
 </html>

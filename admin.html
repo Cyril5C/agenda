@@ -76,6 +76,20 @@
     </div>
 
     <div class="form-container" style="margin-top: 30px;">
+        <h2>Informations diverses</h2>
+        <p style="color: #666; font-size: 0.9rem;">Affichées en bas à gauche de la page principale. Laissez vide pour ne rien afficher.</p>
+
+        <form id="infosForm">
+            <div class="form-group">
+                <label for="infosTexte">Texte des informations</label>
+                <textarea id="infosTexte" name="infosTexte" rows="4" placeholder="Ex: Les voisins sont en vacances la semaine prochaine" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <button type="submit">Enregistrer les informations</button>
+        </form>
+    </div>
+
+    <div class="form-container" style="margin-top: 30px;">
         <h2>Galerie d'images</h2>
 
         <form id="imageForm" style="margin-bottom: 20px;">
@@ -486,10 +500,56 @@
             });
         }
 
+        // Gestion des informations diverses
+        function loadInfos() {
+            fetch('infos.php?t=' + new Date().getTime())
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('infosTexte').value = data.texte || '';
+                    }
+                })
+                .catch(error => console.error('Erreur chargement infos:', error));
+        }
+
+        document.getElementById('infosForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const texte = document.getElementById('infosTexte').value;
+
+            // Demander confirmation
+            const confirmMessage = texte.trim() === ''
+                ? 'Voulez-vous vraiment supprimer les informations affichées ?'
+                : 'Voulez-vous enregistrer ces informations ?\n\n' + texte;
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            fetch('infos.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ texte: texte })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Informations enregistrées avec succès !', 'success');
+                } else {
+                    showMessage('Erreur : ' + (data.error || 'Erreur inconnue'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showMessage('Erreur lors de l\'enregistrement des informations', 'error');
+            });
+        });
+
         // Initialiser
         toggleEventType();
         loadEvents();
         loadImages();
+        loadInfos();
     </script>
 </body>
 </html>
