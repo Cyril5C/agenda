@@ -42,8 +42,8 @@
         const datesRow = document.getElementById('dates');
         const contentRow = document.getElementById('content');
 
-        // Charger les événements depuis le fichier JSON (avec cache-busting)
-        fetch('evenements.json?t=' + new Date().getTime())
+        // Charger les événements depuis l'API (avec cache-busting)
+        fetch('api.php?t=' + new Date().getTime())
             .then(response => response.json())
             .then(evenements => {
                 console.log('Événements chargés:', evenements);
