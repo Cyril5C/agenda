@@ -16,13 +16,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $imagesFile = config('images_file');
 $response = ['success' => false];
 
-// Créer le fichier s'il n'existe pas
-if (!file_exists($imagesFile)) {
+// Créer le fichier s'il n'existe pas (mode dev uniquement)
+if (!config('use_gist') && !file_exists($imagesFile)) {
     file_put_contents($imagesFile, '[]');
+}
+
+// Fonctions Gist pour images
+function getImagesFromGist() {
+    $gistId = config('gist_id');
+    $token = config('gist_token');
+    $filename = config('gist_images_filename');
+
+    if (empty($gistId) || empty($token)) {
+        logError('Configuration Gist manquante pour images');
+        return null;
+    }
+
+    $url = "https://api.github.com/gists/{$gistId}";
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: token ' . $token,
+        'User-Agent: PHP-Agenda-App',
+        'Accept: application/vnd.github.v3+json'
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        logError('Erreur lors de la lecture du Gist images', ['http_code' => $httpCode]);
+        return null;
+    }
+
+    $gist = json_decode($response, true);
+
+    if (isset($gist['files'][$filename]['content'])) {
+        $images = json_decode($gist['files'][$filename]['content'], true);
+        return is_array($images) ? $images : [];
+    }
+
+    return null;
+}
+
+function saveImagesToGist($images) {
+    $gistId = config('gist_id');
+    $token = config('gist_token');
+    $filename = config('gist_images_filename');
+
+    if (empty($gistId) || empty($token)) {
+        logError('Configuration Gist manquante pour images');
+        return false;
+    }
+
+    $url = "https://api.github.com/gists/{$gistId}";
+
+    $gistData = [
+        'files' => [
+            $filename => [
+                'content' => json_encode($images, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+            ]
+        ]
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($gistData));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: token ' . $token,
+        'User-Agent: PHP-Agenda-App',
+        'Accept: application/vnd.github.v3+json',
+        'Content-Type: application/json'
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        logError('Erreur lors de l\'écriture du Gist images', ['http_code' => $httpCode]);
+        return false;
+    }
+
+    return true;
 }
 
 // Lire les images
 function getImages() {
+    if (config('use_gist')) {
+        $images = getImagesFromGist();
+        if ($images !== null) {
+            return $images;
+        }
+        logError('Fallback sur le fichier local après échec Gist images');
+    }
+
     global $imagesFile;
     $content = @file_get_contents($imagesFile);
     if ($content === false) {
@@ -34,6 +125,14 @@ function getImages() {
 
 // Sauvegarder les images
 function saveImages($images) {
+    if (config('use_gist')) {
+        $success = saveImagesToGist($images);
+        if ($success) {
+            return true;
+        }
+        logError('Fallback sur le fichier local après échec écriture Gist images');
+    }
+
     global $imagesFile;
     return file_put_contents($imagesFile, json_encode($images, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
