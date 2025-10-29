@@ -29,6 +29,11 @@ th.aujourd-hui .label-aujourdhui {
     font-size: 1rem;
 }
 
+th.demain .label-demain,
+th.apres-demain .label-apres-demain {
+    font-size: 1rem;
+}
+
 td {
     border: 1px solid #ddd;
     padding: 10px;

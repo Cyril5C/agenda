@@ -61,10 +61,16 @@
                     const dateStr = date.toISOString().split('T')[0];
 
                     const th = document.createElement('th');
-                    // Ajouter "Aujourd'hui" pour la première colonne
+                    // Ajouter des labels pour aujourd'hui, demain, après-demain
                     if (i === 0) {
                         th.className = 'aujourd-hui';
                         th.innerHTML = `<span class="label-aujourdhui">Aujourd'hui</span><br>${jour}<br>${numeroJour} ${nomMois}`;
+                    } else if (i === 1) {
+                        th.className = 'demain';
+                        th.innerHTML = `<span class="label-demain">Demain</span><br>${jour}<br>${numeroJour} ${nomMois}`;
+                    } else if (i === 2) {
+                        th.className = 'apres-demain';
+                        th.innerHTML = `<span class="label-apres-demain">Après-demain</span><br>${jour}<br>${numeroJour} ${nomMois}`;
                     } else {
                         th.innerHTML = `${jour}<br>${numeroJour} ${nomMois}`;
                     }
