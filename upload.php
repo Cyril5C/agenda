@@ -21,13 +21,37 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Debug: afficher les informations reçues
+if (APP_DEBUG) {
+    logError('Upload attempt', [
+        'FILES' => $_FILES,
+        'POST' => $_POST
+    ]);
+}
+
 // Vérifier qu'un fichier a été uploadé
 if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-    $response['error'] = 'Aucun fichier uploadé ou erreur lors de l\'upload';
-    if (isset($_FILES['image']['error'])) {
-        $response['error_code'] = $_FILES['image']['error'];
-    }
-    logError('Erreur upload fichier', ['error' => $_FILES['image']['error'] ?? 'no file']);
+    $errorMessages = [
+        UPLOAD_ERR_INI_SIZE => 'Le fichier dépasse la limite upload_max_filesize du php.ini',
+        UPLOAD_ERR_FORM_SIZE => 'Le fichier dépasse la limite MAX_FILE_SIZE du formulaire',
+        UPLOAD_ERR_PARTIAL => 'Le fichier n\'a été que partiellement uploadé',
+        UPLOAD_ERR_NO_FILE => 'Aucun fichier n\'a été uploadé',
+        UPLOAD_ERR_NO_TMP_DIR => 'Dossier temporaire manquant',
+        UPLOAD_ERR_CANT_WRITE => 'Échec de l\'écriture du fichier sur le disque',
+        UPLOAD_ERR_EXTENSION => 'Une extension PHP a arrêté l\'upload'
+    ];
+
+    $errorCode = $_FILES['image']['error'] ?? 'no file';
+    $errorMsg = isset($errorMessages[$errorCode]) ? $errorMessages[$errorCode] : 'Erreur inconnue';
+
+    $response['error'] = 'Erreur upload: ' . $errorMsg;
+    $response['error_code'] = $errorCode;
+
+    logError('Erreur upload fichier', [
+        'error_code' => $errorCode,
+        'error_msg' => $errorMsg,
+        'FILES' => $_FILES
+    ]);
     echo json_encode($response);
     exit;
 }
@@ -116,40 +140,70 @@ ftp_close($conn);
 // Construire l'URL publique de l'image
 $imageUrl = rtrim($publicUrl, '/') . '/' . $filename;
 
-// Ajouter l'image au JSON via l'API images.php
-$imageData = [
+// Ajouter l'image au JSON directement (sans passer par HTTP)
+// Charger les fonctions de images.php
+$imagesFile = config('images_file');
+
+// Fonction locale pour lire les images (copie de images.php)
+function getImagesLocal() {
+    if (config('use_gist')) {
+        // Utiliser les fonctions Gist si disponibles
+        if (function_exists('getImagesFromGist')) {
+            $images = getImagesFromGist();
+            if ($images !== null) {
+                return $images;
+            }
+        }
+    }
+
+    $imagesFile = config('images_file');
+    $content = @file_get_contents($imagesFile);
+    if ($content === false) {
+        return [];
+    }
+    $images = json_decode($content, true);
+    return is_array($images) ? $images : [];
+}
+
+// Fonction locale pour sauvegarder les images
+function saveImagesLocal($images) {
+    if (config('use_gist')) {
+        if (function_exists('saveImagesToGist')) {
+            $success = saveImagesToGist($images);
+            if ($success) {
+                return true;
+            }
+        }
+    }
+
+    $imagesFile = config('images_file');
+    return file_put_contents($imagesFile, json_encode($images, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+// Ajouter l'image
+$images = getImagesLocal();
+
+$newImage = [
+    'id' => uniqid(),
     'url' => $imageUrl,
-    'titre' => $titre
+    'titre' => $titre,
+    'date_ajout' => date('Y-m-d H:i:s')
 ];
 
-// Appeler l'API interne pour ajouter l'image
-$ch = curl_init('http://localhost/images.php');
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($imageData));
-curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-$result = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
+$images[] = $newImage;
 
-if ($httpCode === 200) {
-    $apiResponse = json_decode($result, true);
-    if ($apiResponse && $apiResponse['success']) {
-        $response['success'] = true;
-        $response['message'] = 'Image uploadée et ajoutée avec succès';
-        $response['url'] = $imageUrl;
-        $response['image'] = $apiResponse['image'];
+if (saveImagesLocal($images)) {
+    $response['success'] = true;
+    $response['message'] = 'Image uploadée et ajoutée avec succès';
+    $response['url'] = $imageUrl;
+    $response['image'] = $newImage;
 
-        if (APP_DEBUG) {
-            logError('Image uploadée avec succès', ['url' => $imageUrl, 'filename' => $filename]);
-        }
-    } else {
-        $response['error'] = 'Image uploadée mais erreur lors de l\'ajout au JSON';
-        logError('Erreur ajout image au JSON', ['api_response' => $apiResponse]);
+    if (APP_DEBUG) {
+        logError('Image uploadée avec succès', ['url' => $imageUrl, 'filename' => $filename]);
     }
 } else {
-    $response['error'] = 'Image uploadée mais erreur lors de l\'appel API';
-    logError('Erreur appel API images', ['http_code' => $httpCode]);
+    $response['error'] = 'Image uploadée mais erreur lors de l\'ajout au JSON';
+    logError('Erreur sauvegarde image dans JSON');
 }
 
 echo json_encode($response);
