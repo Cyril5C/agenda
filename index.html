@@ -31,10 +31,15 @@
             })
             .catch(error => console.error('Erreur chargement environnement:', error));
 
-        // Rafraîchir la page toutes les 5 minutes (300000 millisecondes)
-        setInterval(() => {
-            location.reload();
-        }, 300000);
+        // Écouter les mises à jour depuis l'admin via BroadcastChannel
+        if ('BroadcastChannel' in window) {
+            const channel = new BroadcastChannel('agenda_updates');
+            channel.onmessage = (event) => {
+                console.log('Mise à jour reçue depuis l\'admin:', event.data);
+                // Rafraîchir la page quand une modification est faite dans l'admin
+                location.reload();
+            };
+        }
 
         const jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
         const mois = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
