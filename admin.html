@@ -247,10 +247,9 @@
                         }
 
                         eventDiv.innerHTML = `
+                             <strong>${event.titre}</strong><br>
                             ${dateInfo}
                             <strong>Heure:</strong> ${event.heure}<br>
-                            <strong>Titre:</strong> ${event.titre}<br>
-                            <strong>Couleur:</strong> <span style="background-color: ${event.couleur}; padding: 2px 10px; border-radius: 3px;">${event.couleur}</span><br>
                             <button onclick="editEvent(${event.originalIndex})" style="background-color: #3498db; margin-right: 10px;">Modifier</button>
                             <button onclick="deleteEvent(${event.originalIndex})">Supprimer</button>
                         `;
