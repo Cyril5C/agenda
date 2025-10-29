@@ -31,27 +31,22 @@
             })
             .catch(error => console.error('Erreur chargement environnement:', error));
 
-        // Écouter les mises à jour depuis l'admin via BroadcastChannel
-        if ('BroadcastChannel' in window) {
-            const channel = new BroadcastChannel('agenda_updates');
-            channel.onmessage = (event) => {
-                console.log('Mise à jour reçue depuis l\'admin:', event.data);
-                // Rafraîchir la page quand une modification est faite dans l'admin
-                location.reload();
-            };
-        }
-
         const jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
         const mois = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
         const datesRow = document.getElementById('dates');
         const contentRow = document.getElementById('content');
 
-        // Charger les événements depuis l'API (avec cache-busting)
-        fetch('api.php?t=' + new Date().getTime())
+        // Fonction pour charger les événements
+        function loadEvents() {
+            fetch('api.php?t=' + new Date().getTime())
             .then(response => response.json())
             .then(evenements => {
                 console.log('Événements chargés:', evenements);
+
+                // Vider les anciennes données
+                datesRow.innerHTML = '';
+                contentRow.innerHTML = '';
 
                 // Créer les colonnes pour les 8 jours glissants à partir d'aujourd'hui
                 for (let i = 0; i < 8; i++) {
@@ -133,9 +128,11 @@
                 }
             })
             .catch(error => console.error('Erreur de chargement des événements:', error));
+        }
 
-        // Charger les images depuis l'API
-        fetch('images.php?t=' + new Date().getTime())
+        // Fonction pour charger les images
+        function loadImages() {
+            fetch('images.php?t=' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
                 const galerie = document.getElementById('galerie');
@@ -158,9 +155,11 @@
                 });
             })
             .catch(error => console.error('Erreur de chargement des images:', error));
+        }
 
-        // Charger les informations diverses
-        fetch('infos.php?t=' + new Date().getTime())
+        // Fonction pour charger les informations diverses
+        function loadInfos() {
+            fetch('infos.php?t=' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
                 const infosEncart = document.getElementById('infosEncart');
@@ -179,6 +178,21 @@
                 console.error('Erreur de chargement des informations:', error);
                 document.getElementById('infosEncart').style.display = 'none';
             });
+        }
+
+        // Fonction pour tout recharger
+        function refreshAll() {
+            console.log('Rafraîchissement des données...', new Date().toLocaleTimeString());
+            loadEvents();
+            loadImages();
+            loadInfos();
+        }
+
+        // Chargement initial
+        refreshAll();
+
+        // Recharger les données toutes les 60 secondes
+        setInterval(refreshAll, 60000);
     </script>
 </body>
 </html>
