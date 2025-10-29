@@ -2,6 +2,90 @@
 // Charger la configuration
 require_once __DIR__ . '/config.php';
 
+// Charger les fonctions de gestion des images pour avoir accès aux fonctions Gist
+// On doit définir les fonctions Gist ici car images.php les utilise mais ne les exporte pas
+function getImagesFromGist() {
+    $gistId = config('gist_id');
+    $token = config('gist_token');
+    $filename = config('gist_images_filename');
+
+    if (empty($gistId) || empty($token)) {
+        logError('Configuration Gist manquante pour images');
+        return null;
+    }
+
+    $url = "https://api.github.com/gists/{$gistId}";
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: token ' . $token,
+        'User-Agent: PHP-Agenda-App',
+        'Accept: application/vnd.github.v3+json'
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        logError('Erreur lors de la lecture du Gist images', ['http_code' => $httpCode]);
+        return null;
+    }
+
+    $gist = json_decode($response, true);
+
+    if (isset($gist['files'][$filename]['content'])) {
+        $images = json_decode($gist['files'][$filename]['content'], true);
+        return is_array($images) ? $images : [];
+    }
+
+    return null;
+}
+
+function saveImagesToGist($images) {
+    $gistId = config('gist_id');
+    $token = config('gist_token');
+    $filename = config('gist_images_filename');
+
+    if (empty($gistId) || empty($token)) {
+        logError('Configuration Gist manquante pour images');
+        return false;
+    }
+
+    $url = "https://api.github.com/gists/{$gistId}";
+
+    $gistData = [
+        'files' => [
+            $filename => [
+                'content' => json_encode($images, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+            ]
+        ]
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($gistData));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: token ' . $token,
+        'User-Agent: PHP-Agenda-App',
+        'Accept: application/vnd.github.v3+json',
+        'Content-Type: application/json'
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        logError('Erreur lors de l\'écriture du Gist images', ['http_code' => $httpCode]);
+        return false;
+    }
+
+    return true;
+}
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: ' . config('cors_origin'));
 header('Access-Control-Allow-Methods: POST');
@@ -144,16 +228,14 @@ $imageUrl = rtrim($publicUrl, '/') . '/' . $filename;
 // Charger les fonctions de images.php
 $imagesFile = config('images_file');
 
-// Fonction locale pour lire les images (copie de images.php)
+// Fonction locale pour lire les images
 function getImagesLocal() {
     if (config('use_gist')) {
-        // Utiliser les fonctions Gist si disponibles
-        if (function_exists('getImagesFromGist')) {
-            $images = getImagesFromGist();
-            if ($images !== null) {
-                return $images;
-            }
+        $images = getImagesFromGist();
+        if ($images !== null) {
+            return $images;
         }
+        logError('Fallback sur le fichier local après échec Gist images');
     }
 
     $imagesFile = config('images_file');
@@ -168,12 +250,11 @@ function getImagesLocal() {
 // Fonction locale pour sauvegarder les images
 function saveImagesLocal($images) {
     if (config('use_gist')) {
-        if (function_exists('saveImagesToGist')) {
-            $success = saveImagesToGist($images);
-            if ($success) {
-                return true;
-            }
+        $success = saveImagesToGist($images);
+        if ($success) {
+            return true;
         }
+        logError('Fallback sur le fichier local après échec écriture Gist images');
     }
 
     $imagesFile = config('images_file');
