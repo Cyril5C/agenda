@@ -3,12 +3,7 @@
 nixPkgs = ["php81", "nginx"]
 
 [phases.build]
-cmds = [
-  "echo 'upload_max_filesize=10M' > custom-php.ini",
-  "echo 'post_max_size=10M' >> custom-php.ini",
-  "echo 'max_execution_time=120' >> custom-php.ini",
-  "echo 'memory_limit=256M' >> custom-php.ini"
-]
+cmds = ["echo 'Build complete'"]
 
 [start]
-cmd = "php server.php"
+cmd = "php -S 0.0.0.0:${PORT:-8000}"
