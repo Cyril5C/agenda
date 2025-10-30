@@ -1,4 +1,10 @@
 <?php
+// Augmenter les limites PHP pour l'upload
+ini_set('upload_max_filesize', '10M');
+ini_set('post_max_size', '10M');
+ini_set('max_execution_time', '120');
+ini_set('memory_limit', '256M');
+
 // Charger la configuration
 require_once __DIR__ . '/config.php';
 
