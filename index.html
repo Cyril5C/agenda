@@ -37,11 +37,18 @@
         const datesRow = document.getElementById('dates');
         const contentRow = document.getElementById('content');
 
+        // Variable pour stocker les événements actuels
+        let currentEventsJson = '';
+
         // Fonction pour charger les événements
         function loadEvents() {
             fetch('api.php?t=' + new Date().getTime())
             .then(response => response.json())
             .then(evenements => {
+                // Comparer avec les événements actuels pour détecter un changement
+                const newEventsJson = JSON.stringify(evenements || []);
+
+                // Toujours recharger les événements car les dates changent chaque jour
                 console.log('Événements chargés:', evenements);
 
                 // Vider les anciennes données
@@ -130,11 +137,25 @@
             .catch(error => console.error('Erreur de chargement des événements:', error));
         }
 
+        // Variable pour stocker la liste actuelle des images
+        let currentImagesJson = '';
+
         // Fonction pour charger les images
         function loadImages() {
             fetch('images.php?t=' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
+                // Comparer avec les images actuelles pour détecter un changement
+                const newImagesJson = JSON.stringify(data.images || []);
+
+                if (newImagesJson === currentImagesJson) {
+                    console.log('Aucun changement dans les images');
+                    return; // Pas de changement, on ne recharge pas
+                }
+
+                currentImagesJson = newImagesJson;
+                console.log('Mise à jour des images détectée');
+
                 const galerie = document.getElementById('galerie');
                 galerie.innerHTML = ''; // Vider la galerie
 
@@ -145,9 +166,7 @@
 
                 data.images.forEach(image => {
                     const img = document.createElement('img');
-                    // Ajouter un timestamp pour éviter le cache navigateur
-                    const separator = image.url.includes('?') ? '&' : '?';
-                    img.src = image.url + separator + 't=' + new Date().getTime();
+                    img.src = image.url;
                     img.alt = image.titre || 'Image';
                     img.title = image.titre || '';
                     img.onerror = function() {
@@ -159,11 +178,25 @@
             .catch(error => console.error('Erreur de chargement des images:', error));
         }
 
+        // Variable pour stocker les infos actuelles
+        let currentInfosJson = '';
+
         // Fonction pour charger les informations diverses
         function loadInfos() {
             fetch('infos.php?t=' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
+                // Comparer avec les infos actuelles pour détecter un changement
+                const newInfosJson = JSON.stringify(data);
+
+                if (newInfosJson === currentInfosJson) {
+                    console.log('Aucun changement dans les infos');
+                    return; // Pas de changement, on ne recharge pas
+                }
+
+                currentInfosJson = newInfosJson;
+                console.log('Mise à jour des infos détectée');
+
                 const infosEncart = document.getElementById('infosEncart');
 
                 if (data.success && data.texte && data.texte.trim() !== '') {
