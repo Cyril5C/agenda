@@ -7,7 +7,12 @@
     <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-    <h1>Gestion des événements</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="margin: 0;">Gestion des événements</h1>
+        <button onclick="logout()" style="background-color: #e74c3c; padding: 10px 20px; border: none; border-radius: 5px; color: white; cursor: pointer; font-size: 14px;">
+            Déconnexion
+        </button>
+    </div>
 
     <div id="message" class="message"></div>
 
@@ -131,6 +136,42 @@
     </div>
 
     <script>
+        // Vérifier l'authentification au chargement de la page
+        fetch('auth.php?check=1')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.authenticated) {
+                    window.location.href = 'login.html';
+                }
+            })
+            .catch(error => {
+                console.error('Erreur vérification authentification:', error);
+                window.location.href = 'login.html';
+            });
+
+        // Fonction de déconnexion
+        function logout() {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                const formData = new FormData();
+                formData.append('action', 'logout');
+
+                fetch('auth.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = 'login.html';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    window.location.href = 'login.html';
+                });
+            }
+        }
+
         // Variable globale pour stocker l'index de l'événement en cours de modification
         let editingEventIndex = null;
 
