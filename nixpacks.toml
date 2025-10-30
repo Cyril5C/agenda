@@ -11,4 +11,4 @@ cmds = [
 ]
 
 [start]
-cmd = "php -c custom-php.ini -S 0.0.0.0:${PORT:-8000} router.php"
+cmd = "php server.php"
