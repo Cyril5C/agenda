@@ -3,6 +3,16 @@ body {
     padding: 0;
     font-family: Arial, sans-serif;
     height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Container pour la partie basse (galerie + infos) */
+.bottom-section {
+    position: relative;
+    height: 50vh;
+    display: flex;
 }
 
 table {
@@ -15,10 +25,11 @@ table {
 th {
     background-color: #2c3e50;
     color: white;
-    padding: 15px 10px;
+    padding: 10px 5px;
     text-align: center;
     border: 1px solid #ddd;
-    font-size: 2rem;
+    font-size: 1.4rem;
+    line-height: 1.2;
 }
 
 th.aujourd-hui {
@@ -26,49 +37,55 @@ th.aujourd-hui {
 }
 
 th.aujourd-hui .label-aujourdhui {
-    font-size: 1rem;
+    font-size: 0.8rem;
+    display: block;
 }
 
 th.demain .label-demain,
 th.apres-demain .label-apres-demain {
-    font-size: 1rem;
+    font-size: 0.8rem;
+    display: block;
 }
 
 td {
     border: 1px solid #ddd;
-    padding: 10px;
+    padding: 8px;
     vertical-align: top;
     overflow-y: auto;
+    max-height: calc(50vh - 80px);
 }
 
 .postit {
     border: 1px solid #e6d070;
-    padding: 10px;
-    margin: 5px 0;
+    padding: 8px;
+    margin: 4px 0;
     box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
     font-weight: bold;
     position: relative;
+    font-size: 0.9rem;
 }
 
 .postit-recurrent-icon {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    font-size: 1.2rem;
+    top: 3px;
+    right: 3px;
+    font-size: 1rem;
     opacity: 0.6;
 }
 
 .postit-heure {
-    font-size: 1rem;
-    margin-bottom: 5px;
+    font-size: 0.85rem;
+    margin-bottom: 3px;
     color: #666;
 }
 
 .postit-titre {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
+    line-height: 1.3;
 }
 
 .galerie {
+    flex: 1;
     height: 50vh;
     padding: 0;
     display: flex;
@@ -84,41 +101,35 @@ td {
     height: 50vh;
     min-width: 0;
     object-fit: contain;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.galerie img:hover {
-    transform: scale(1.02);
 }
 
 .infos-encart {
     position: absolute;
-    top: calc(50vh + 10px);
-    left: 10px;
-    width: 25%;
-    background-color: #fff3cd;
-    border: 2px solid #ffc107;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    bottom: 20px;
+    left: 20px;
+    max-width: 400px;
+    background-color: rgba(255, 243, 205, 0.95);
+    border: 3px solid #ffc107;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
     display: none;
     z-index: 1000;
 }
 
 .infos-titre {
     font-weight: bold;
-    font-size: 1.1rem;
-    margin-bottom: 10px;
+    font-size: 1.3rem;
+    margin-bottom: 12px;
     color: #856404;
-    border-bottom: 1px solid #ffc107;
-    padding-bottom: 5px;
+    border-bottom: 2px solid #ffc107;
+    padding-bottom: 8px;
 }
 
 .infos-texte {
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     color: #333;
-    line-height: 1.4;
+    line-height: 1.5;
     white-space: pre-wrap;
 }
 
