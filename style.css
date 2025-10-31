@@ -51,8 +51,7 @@ td {
     border: 1px solid #ddd;
     padding: 8px;
     vertical-align: top;
-    overflow-y: auto;
-    max-height: calc(50vh - 80px);
+    overflow: hidden;
 }
 
 .postit {
