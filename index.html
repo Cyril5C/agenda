@@ -183,6 +183,13 @@
                     return;
                 }
 
+                // Ajouter une classe si une seule image
+                if (data.images.length === 1) {
+                    galerie.classList.add('galerie-single');
+                } else {
+                    galerie.classList.remove('galerie-single');
+                }
+
                 data.images.forEach(image => {
                     const img = document.createElement('img');
                     img.src = image.url;
