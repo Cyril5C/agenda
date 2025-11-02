@@ -18,7 +18,6 @@
 
     <div class="bottom-section">
         <div class="galerie" id="galerie"></div>
-        <div class="infos-encart" id="infosEncart"></div>
     </div>
 
     <script>
@@ -41,6 +40,9 @@
         // Variable pour stocker les événements actuels
         let currentEventsJson = '';
 
+        // Variable globale pour stocker les événements
+        let allEvents = [];
+
         // Fonction pour charger les événements
         function loadEvents() {
             fetch('api.php?t=' + new Date().getTime())
@@ -52,12 +54,15 @@
                 // Toujours recharger les événements car les dates changent chaque jour
                 console.log('Événements chargés:', evenements);
 
+                // Sauvegarder les événements pour les réutiliser
+                allEvents = evenements;
+
                 // Vider les anciennes données
                 datesRow.innerHTML = '';
                 contentRow.innerHTML = '';
 
-                // Créer les colonnes pour les 8 jours glissants à partir d'aujourd'hui
-                for (let i = 0; i < 8; i++) {
+                // Créer les colonnes pour les 6 jours glissants à partir d'aujourd'hui (+ 2 colonnes d'infos)
+                for (let i = 0; i < 6; i++) {
                     const date = new Date();
                     date.setDate(date.getDate() + i);
 
@@ -134,6 +139,19 @@
 
                     contentRow.appendChild(td);
                 }
+
+                // Ajouter l'encart d'informations qui prend 2 colonnes
+                const thInfo = document.createElement('th');
+                thInfo.colSpan = 2;
+                thInfo.className = 'info-header';
+                thInfo.innerHTML = 'ℹ️ Informations';
+                datesRow.appendChild(thInfo);
+
+                const tdInfo = document.createElement('td');
+                tdInfo.colSpan = 2;
+                tdInfo.id = 'infosCell';
+                tdInfo.className = 'info-cell';
+                contentRow.appendChild(tdInfo);
             })
             .catch(error => console.error('Erreur de chargement des événements:', error));
         }
@@ -198,22 +216,78 @@
                 currentInfosJson = newInfosJson;
                 console.log('Mise à jour des infos détectée');
 
-                const infosEncart = document.getElementById('infosEncart');
+                const infosCell = document.getElementById('infosCell');
 
-                if (data.success && data.texte && data.texte.trim() !== '') {
-                    infosEncart.innerHTML = `
-                        <div class="infos-titre">ℹ️ Informations</div>
-                        <div class="infos-texte">${data.texte}</div>
-                    `;
-                    infosEncart.style.display = 'block';
-                } else {
-                    infosEncart.style.display = 'none';
+                if (infosCell) {
+                    let html = '';
+
+                    // Ajouter le texte d'informations s'il existe
+                    if (data.success && data.texte && data.texte.trim() !== '') {
+                        html += `<div class="infos-texte">${data.texte}</div>`;
+                    }
+
+                    // Ajouter les 3 prochains événements après J+6
+                    const nextEvents = getNextEvents(3, 6);
+                    if (nextEvents.length > 0) {
+                        html += '<div class="prochains-events">';
+                        html += '<div class="prochains-events-titre">Prochains événements :</div>';
+                        nextEvents.forEach(evt => {
+                            html += `<div class="prochain-event">`;
+                            html += `<span class="event-date">${evt.dateFormatted}</span> - `;
+                            html += `<span class="event-heure">${evt.heure}</span> `;
+                            html += `<span class="event-titre">${evt.titre}</span>`;
+                            html += `</div>`;
+                        });
+                        html += '</div>';
+                    }
+
+                    infosCell.innerHTML = html;
                 }
             })
             .catch(error => {
                 console.error('Erreur de chargement des informations:', error);
-                document.getElementById('infosEncart').style.display = 'none';
+                const infosCell = document.getElementById('infosCell');
+                if (infosCell) {
+                    infosCell.innerHTML = '';
+                }
             });
+        }
+
+        // Fonction pour récupérer les N prochains événements après X jours
+        function getNextEvents(count, afterDays) {
+            const events = [];
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() + afterDays);
+
+            // Parcourir les 30 prochains jours après J+afterDays
+            for (let i = 0; i < 30 && events.length < count; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                const jour = jours[date.getDay()];
+
+                // Collecter les événements de ce jour (uniquement les événements avec date fixe, pas les récurrents)
+                const dayEvents = [];
+
+                // Événements avec date fixe uniquement (on exclut les récurrents)
+                allEvents
+                    .filter(evt => evt.date === dateStr && !evt.recurrent)
+                    .forEach(evt => dayEvents.push({
+                        ...evt,
+                        dateFormatted: `${jour} ${date.getDate()} ${mois[date.getMonth()]}`
+                    }));
+
+                // Trier par heure et ajouter
+                dayEvents
+                    .sort((a, b) => a.heure.localeCompare(b.heure))
+                    .forEach(evt => {
+                        if (events.length < count) {
+                            events.push(evt);
+                        }
+                    });
+            }
+
+            return events;
         }
 
         // Fonction pour tout recharger
