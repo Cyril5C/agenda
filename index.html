@@ -39,6 +39,7 @@
 
         // Variable pour stocker les événements actuels
         let currentEventsJson = '';
+        let currentDate = new Date().toDateString();
 
         // Variable globale pour stocker les événements
         let allEvents = [];
@@ -50,12 +51,23 @@
             .then(evenements => {
                 // Comparer avec les événements actuels pour détecter un changement
                 const newEventsJson = JSON.stringify(evenements || []);
+                const newDate = new Date().toDateString();
 
-                // Toujours recharger les événements car les dates changent chaque jour
+                // Vérifier si on doit régénérer le tableau
+                const needsRebuild = (newEventsJson !== currentEventsJson) || (newDate !== currentDate);
+
+                if (!needsRebuild) {
+                    console.log('Aucun changement, pas de régénération du tableau');
+                    return;
+                }
+
                 console.log('Événements chargés:', evenements);
+                console.log('Régénération du tableau nécessaire');
 
                 // Sauvegarder les événements pour les réutiliser
                 allEvents = evenements;
+                currentEventsJson = newEventsJson;
+                currentDate = newDate;
 
                 // Sauvegarder la cellule d'infos si elle existe
                 const existingInfosCell = document.getElementById('infosCell');
