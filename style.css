@@ -28,7 +28,7 @@ th {
     padding: 5px;
     text-align: center;
     border: 1px solid #ddd;
-    font-size: 1.4rem;
+    font-size: 1.8rem;
     line-height: 1;
 }
 
@@ -79,7 +79,7 @@ td {
 }
 
 .postit-titre {
-    font-size: 1.5rem;
+    font-size: 2rem;
     line-height: 1.3;
 }
 
@@ -124,7 +124,7 @@ th.info-header {
     background-color: #ffc107;
     color: #333;
     font-weight: bold;
-    font-size: 1.4rem;
+    font-size: 1.6rem;
 }
 
 td.info-cell {
@@ -134,7 +134,7 @@ td.info-cell {
 }
 
 .infos-texte {
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     color: #333;
     line-height: 1.5;
     white-space: pre-wrap;
