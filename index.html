@@ -206,6 +206,38 @@
 
         // Variable pour stocker les infos actuelles
         let currentInfosJson = '';
+        let currentInfosData = null;
+
+        // Fonction pour mettre à jour l'affichage des infos
+        function updateInfosDisplay(data) {
+            const infosCell = document.getElementById('infosCell');
+
+            if (infosCell) {
+                let html = '';
+
+                // Ajouter le texte d'informations s'il existe
+                if (data && data.success && data.texte && data.texte.trim() !== '') {
+                    html += `<div class="infos-texte">${data.texte}</div>`;
+                }
+
+                // Ajouter les 3 prochains événements après J+6
+                const nextEvents = getNextEvents(3, 6);
+                if (nextEvents.length > 0) {
+                    html += '<div class="prochains-events">';
+                    html += '<div class="prochains-events-titre">Autres événements :</div>';
+                    nextEvents.forEach(evt => {
+                        html += `<div class="prochain-event">`;
+                        html += `<span class="event-date">${evt.dateFormatted}</span> - `;
+                        html += `<span class="event-heure">${evt.heure}</span> `;
+                        html += `<span class="event-titre">${evt.titre}</span>`;
+                        html += `</div>`;
+                    });
+                    html += '</div>';
+                }
+
+                infosCell.innerHTML = html;
+            }
+        }
 
         // Fonction pour charger les informations diverses
         function loadInfos() {
@@ -217,46 +249,20 @@
 
                 if (newInfosJson === currentInfosJson) {
                     console.log('Aucun changement dans les infos');
-                    return; // Pas de changement, on ne recharge pas
+                    // Même si pas de changement, on met à jour l'affichage (car le tableau peut avoir été régénéré)
+                    updateInfosDisplay(currentInfosData);
+                    return;
                 }
 
                 currentInfosJson = newInfosJson;
+                currentInfosData = data;
                 console.log('Mise à jour des infos détectée');
 
-                const infosCell = document.getElementById('infosCell');
-
-                if (infosCell) {
-                    let html = '';
-
-                    // Ajouter le texte d'informations s'il existe
-                    if (data.success && data.texte && data.texte.trim() !== '') {
-                        html += `<div class="infos-texte">${data.texte}</div>`;
-                    }
-
-                    // Ajouter les 3 prochains événements après J+6
-                    const nextEvents = getNextEvents(3, 6);
-                    if (nextEvents.length > 0) {
-                        html += '<div class="prochains-events">';
-                        html += '<div class="prochains-events-titre">Prochains événements :</div>';
-                        nextEvents.forEach(evt => {
-                            html += `<div class="prochain-event">`;
-                            html += `<span class="event-date">${evt.dateFormatted}</span> - `;
-                            html += `<span class="event-heure">${evt.heure}</span> `;
-                            html += `<span class="event-titre">${evt.titre}</span>`;
-                            html += `</div>`;
-                        });
-                        html += '</div>';
-                    }
-
-                    infosCell.innerHTML = html;
-                }
+                updateInfosDisplay(data);
             })
             .catch(error => {
                 console.error('Erreur de chargement des informations:', error);
-                const infosCell = document.getElementById('infosCell');
-                if (infosCell) {
-                    infosCell.innerHTML = '';
-                }
+                updateInfosDisplay(null);
             });
         }
 
