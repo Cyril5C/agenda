@@ -131,12 +131,17 @@
                             eventsForDay.push(evt);
                         });
 
-                    // Trier par heure (les événements sans heure en dernier)
+                    // Trier par heure (les événements sans heure en PREMIER)
                     eventsForDay
                         .sort((a, b) => {
-                            const heureA = a.heure || 'ZZ:ZZ'; // Les événements sans heure à la fin
-                            const heureB = b.heure || 'ZZ:ZZ';
-                            return heureA.localeCompare(heureB);
+                            // Si a n'a pas d'heure mais b en a : a vient avant
+                            if (!a.heure && b.heure) return -1;
+                            // Si b n'a pas d'heure mais a en a : b vient avant
+                            if (a.heure && !b.heure) return 1;
+                            // Si aucun n'a d'heure : ordre original
+                            if (!a.heure && !b.heure) return 0;
+                            // Si les deux ont une heure : trier chronologiquement
+                            return a.heure.localeCompare(b.heure);
                         })
                         .forEach(evt => {
                             const postit = document.createElement('div');
