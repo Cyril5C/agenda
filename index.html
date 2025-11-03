@@ -57,6 +57,10 @@
                 // Sauvegarder les événements pour les réutiliser
                 allEvents = evenements;
 
+                // Sauvegarder la cellule d'infos si elle existe
+                const existingInfosCell = document.getElementById('infosCell');
+                const savedInfosContent = existingInfosCell ? existingInfosCell.innerHTML : '';
+
                 // Vider les anciennes données
                 datesRow.innerHTML = '';
                 contentRow.innerHTML = '';
@@ -151,6 +155,10 @@
                 tdInfo.colSpan = 2;
                 tdInfo.id = 'infosCell';
                 tdInfo.className = 'info-cell';
+                // Restaurer le contenu sauvegardé pour éviter le clignotement
+                if (savedInfosContent) {
+                    tdInfo.innerHTML = savedInfosContent;
+                }
                 contentRow.appendChild(tdInfo);
             })
             .catch(error => console.error('Erreur de chargement des événements:', error));
