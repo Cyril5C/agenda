@@ -6,7 +6,10 @@
       "Bash(curl -s https://cincet.net/pm/info.php)",
       "Bash(curl -s https://cincet.net/pm/ping.php)",
       "Bash(curl -I https://cincet.net/)",
-      "Bash(git add -A)"
+      "Bash(git add -A)",
+      "Bash(git add api.php admin.html admin.css)",
+      "Bash(php -S:*)",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []

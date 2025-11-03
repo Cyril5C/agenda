@@ -21,6 +21,14 @@
     </div>
 
     <script>
+        // Fonction pour échapper le HTML et prévenir les XSS
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Détecter l'environnement et mettre à jour le titre
         fetch('env.php?t=' + new Date().getTime())
             .then(response => response.json())
@@ -212,9 +220,13 @@
 
                 data.images.forEach(image => {
                     const img = document.createElement('img');
-                    img.src = image.url;
-                    img.alt = image.titre || 'Image';
-                    img.title = image.titre || '';
+                    // Échapper l'URL pour éviter javascript: ou data: malveillants
+                    const safeUrl = image.url && (image.url.startsWith('http://') || image.url.startsWith('https://'))
+                        ? image.url
+                        : '';
+                    img.src = safeUrl;
+                    img.alt = escapeHtml(image.titre) || 'Image';
+                    img.title = escapeHtml(image.titre) || '';
                     img.onerror = function() {
                         this.style.display = 'none'; // Masquer les images cassées
                     };
@@ -235,21 +247,21 @@
             if (infosCell) {
                 let html = '';
 
-                // Ajouter le texte d'informations s'il existe
+                // Ajouter le texte d'informations s'il existe (échappé pour éviter XSS)
                 if (data && data.success && data.texte && data.texte.trim() !== '') {
-                    html += `<div class="infos-texte">${data.texte}</div>`;
+                    html += `<div class="infos-texte">${escapeHtml(data.texte)}</div>`;
                 }
 
-                // Ajouter les 3 prochains événements après J+6
+                // Ajouter les 3 prochains événements après J+6 (échappés pour éviter XSS)
                 const nextEvents = getNextEvents(3, 6);
                 if (nextEvents.length > 0) {
                     html += '<div class="prochains-events">';
                     html += '<div class="prochains-events-titre">Autres événements :</div>';
                     nextEvents.forEach(evt => {
                         html += `<div class="prochain-event">`;
-                        html += `<span class="event-date">${evt.dateFormatted}</span> - `;
-                        html += `<span class="event-heure">${evt.heure}</span> `;
-                        html += `<span class="event-titre">${evt.titre}</span>`;
+                        html += `<span class="event-date">${escapeHtml(evt.dateFormatted)}</span> - `;
+                        html += `<span class="event-heure">${escapeHtml(evt.heure)}</span> `;
+                        html += `<span class="event-titre">${escapeHtml(evt.titre)}</span>`;
                         html += `</div>`;
                     });
                     html += '</div>';

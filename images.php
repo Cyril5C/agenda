@@ -1,16 +1,29 @@
 <?php
 // Charger la configuration
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/csrf.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: ' . config('cors_origin'));
 header('Access-Control-Allow-Methods: GET, POST, DELETE');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
+header('Access-Control-Allow-Credentials: true');
 
 // Gérer les requêtes OPTIONS (CORS preflight)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
+}
+
+// Les requêtes POST et DELETE nécessitent authentification
+if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'DELETE'])) {
+    if (!isAuthenticated()) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Non authentifié']);
+        exit;
+    }
+    requireCsrfToken();
 }
 
 $imagesFile = config('images_file');

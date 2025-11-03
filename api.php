@@ -1,11 +1,28 @@
 <?php
 // Charger la configuration
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/csrf.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: ' . config('cors_origin'));
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
+header('Access-Control-Allow-Credentials: true');
+
+// Les requêtes GET sont publiques (lecture seule)
+// Les requêtes POST, PUT, DELETE nécessitent authentification
+if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'DELETE'])) {
+    // Vérifier l'authentification
+    if (!isAuthenticated()) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Non authentifié']);
+        exit;
+    }
+
+    // Vérifier le token CSRF
+    requireCsrfToken();
+}
 
 $jsonFile = config('db_file');
 

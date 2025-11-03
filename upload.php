@@ -1,6 +1,21 @@
 <?php
 // Charger la configuration
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/csrf.php';
+
+// Vérifier l'authentification (upload nécessite toujours authentification)
+if (!isAuthenticated()) {
+    http_response_code(401);
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'error' => 'Non authentifié']);
+    exit;
+}
+
+// Vérifier le token CSRF (pour POST)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCsrfToken();
+}
 
 // Charger les fonctions de gestion des images pour avoir accès aux fonctions Gist
 // On doit définir les fonctions Gist ici car images.php les utilise mais ne les exporte pas
@@ -144,7 +159,7 @@ if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
 $file = $_FILES['image'];
 $titre = isset($_POST['titre']) ? trim($_POST['titre']) : '';
 
-// Vérifier le type de fichier
+// Vérifier le type de fichier avec MIME type ET magic bytes
 $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 $finfo = finfo_open(FILEINFO_MIME_TYPE);
 $mimeType = finfo_file($finfo, $file['tmp_name']);
@@ -153,6 +168,36 @@ finfo_close($finfo);
 if (!in_array($mimeType, $allowedTypes)) {
     $response['error'] = 'Type de fichier non autorisé. Formats acceptés : JPG, PNG, GIF, WEBP';
     logError('Type de fichier non autorisé', ['mime' => $mimeType]);
+    echo json_encode($response);
+    exit;
+}
+
+// Vérification supplémentaire: vérifier les magic bytes (signatures de fichier)
+$handle = fopen($file['tmp_name'], 'rb');
+$magicBytes = fread($handle, 12);
+fclose($handle);
+
+$validSignature = false;
+// JPEG: FF D8 FF
+if (substr($magicBytes, 0, 3) === "\xFF\xD8\xFF") {
+    $validSignature = true;
+}
+// PNG: 89 50 4E 47 0D 0A 1A 0A
+elseif (substr($magicBytes, 0, 8) === "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A") {
+    $validSignature = true;
+}
+// GIF: 47 49 46 38
+elseif (substr($magicBytes, 0, 4) === "GIF8") {
+    $validSignature = true;
+}
+// WEBP: 52 49 46 46 ... 57 45 42 50
+elseif (substr($magicBytes, 0, 4) === "RIFF" && substr($magicBytes, 8, 4) === "WEBP") {
+    $validSignature = true;
+}
+
+if (!$validSignature) {
+    $response['error'] = 'Fichier corrompu ou tentative de contournement détectée';
+    logError('Magic bytes invalides', ['mime' => $mimeType, 'bytes' => bin2hex($magicBytes)]);
     echo json_encode($response);
     exit;
 }
