@@ -154,10 +154,11 @@ if ($method === 'GET') {
     // Ajouter un nouvel événement
     $input = json_decode(file_get_contents('php://input'), true);
 
-    if (!$input || !isset($input['heure']) || !isset($input['titre'])) {
+    // L'heure est maintenant optionnelle, seul le titre est obligatoire
+    if (!$input || !isset($input['titre']) || trim($input['titre']) === '') {
         http_response_code(400);
-        echo json_encode(['error' => 'Données invalides']);
-        logError('Tentative d\'ajout d\'événement avec données invalides', $input);
+        echo json_encode(['error' => 'Titre requis']);
+        logError('Tentative d\'ajout d\'événement sans titre', $input);
         exit;
     }
 
@@ -189,9 +190,10 @@ if ($method === 'GET') {
         exit;
     }
 
-    if (!isset($input['heure']) || !isset($input['titre'])) {
+    // L'heure est optionnelle, seul le titre est obligatoire
+    if (!isset($input['titre']) || trim($input['titre']) === '') {
         http_response_code(400);
-        echo json_encode(['error' => 'Données invalides']);
+        echo json_encode(['error' => 'Titre requis']);
         exit;
     }
 
@@ -213,10 +215,14 @@ if ($method === 'GET') {
 
     // Créer l'événement modifié (sans l'index)
     $updatedEvent = [
-        'heure' => $input['heure'],
         'titre' => $input['titre'],
         'couleur' => $input['couleur'] ?? '#feff9c'
     ];
+
+    // Ajouter l'heure si elle est fournie
+    if (isset($input['heure']) && trim($input['heure']) !== '') {
+        $updatedEvent['heure'] = $input['heure'];
+    }
 
     if (isset($input['date'])) {
         $updatedEvent['date'] = $input['date'];

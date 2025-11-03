@@ -56,8 +56,8 @@
             </div>
 
             <div class="form-group">
-                <label for="heure">Heure</label>
-                <input type="time" id="heure" name="heure" required>
+                <label for="heure">Heure (optionnel)</label>
+                <input type="time" id="heure" name="heure">
             </div>
 
             <div class="form-group">
@@ -304,10 +304,15 @@
                             dateInfo = `<strong>Récurrent:</strong> ${event.recurrent.join(', ')}<br>`;
                         }
 
+                        let heureInfo = '';
+                        if (event.heure) {
+                            heureInfo = `<strong>Heure:</strong> ${event.heure}<br>`;
+                        }
+
                         eventDiv.innerHTML = `
                              <strong>${event.titre}</strong><br>
                             ${dateInfo}
-                            <strong>Heure:</strong> ${event.heure}<br>
+                            ${heureInfo}
                             <button onclick="editEvent(${event.originalIndex})" style="background-color: #3498db; margin-right: 10px;">Modifier</button>
                             <button onclick="deleteEvent(${event.originalIndex})">Supprimer</button>
                         `;
@@ -365,7 +370,7 @@
                     document.getElementById('cancelButton').style.display = 'block';
 
                     // Pré-remplir le formulaire
-                    document.getElementById('heure').value = event.heure;
+                    document.getElementById('heure').value = event.heure || '';
                     document.getElementById('titre').value = event.titre;
                     document.getElementById('couleur').value = event.couleur || '#feff9c';
 

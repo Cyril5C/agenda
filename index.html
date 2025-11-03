@@ -131,9 +131,13 @@
                             eventsForDay.push(evt);
                         });
 
-                    // Trier par heure et afficher
+                    // Trier par heure (les événements sans heure en dernier)
                     eventsForDay
-                        .sort((a, b) => a.heure.localeCompare(b.heure))
+                        .sort((a, b) => {
+                            const heureA = a.heure || 'ZZ:ZZ'; // Les événements sans heure à la fin
+                            const heureB = b.heure || 'ZZ:ZZ';
+                            return heureA.localeCompare(heureB);
+                        })
                         .forEach(evt => {
                             const postit = document.createElement('div');
                             postit.className = 'postit';
@@ -148,10 +152,13 @@
                                 postit.appendChild(icon);
                             }
 
-                            const heure = document.createElement('div');
-                            heure.className = 'postit-heure';
-                            heure.textContent = evt.heure;
-                            postit.appendChild(heure);
+                            // Afficher l'heure seulement si elle existe
+                            if (evt.heure) {
+                                const heure = document.createElement('div');
+                                heure.className = 'postit-heure';
+                                heure.textContent = evt.heure;
+                                postit.appendChild(heure);
+                            }
 
                             const titre = document.createElement('div');
                             titre.className = 'postit-titre';
@@ -259,9 +266,12 @@
                     html += '<div class="prochains-events-titre">Autres événements :</div>';
                     nextEvents.forEach(evt => {
                         html += `<div class="prochain-event">`;
-                        html += `<span class="event-date">${escapeHtml(evt.dateFormatted)}</span> - `;
-                        html += `<span class="event-heure">${escapeHtml(evt.heure)}</span> `;
-                        html += `<span class="event-titre">${escapeHtml(evt.titre)}</span>`;
+                        html += `<span class="event-date">${escapeHtml(evt.dateFormatted)}</span>`;
+                        // Afficher l'heure seulement si elle existe
+                        if (evt.heure) {
+                            html += ` - <span class="event-heure">${escapeHtml(evt.heure)}</span>`;
+                        }
+                        html += ` <span class="event-titre">${escapeHtml(evt.titre)}</span>`;
                         html += `</div>`;
                     });
                     html += '</div>';
