@@ -14,6 +14,34 @@
         </button>
     </div>
 
+    <!-- Message pour les aidants -->
+    <div id="messageAidants" style="background-color: #e3f2fd; border-left: 4px solid #2196F3; padding: 15px; margin-bottom: 20px; border-radius: 4px; display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="flex: 1;">
+                <h3 style="margin: 0 0 10px 0; color: #1976D2; font-size: 1.1rem;">📝 Message pour les aidants</h3>
+                <p id="messageAidantsTexte" style="margin: 0; white-space: pre-wrap; color: #333;"></p>
+            </div>
+            <button onclick="editMessageAidants()" style="background-color: #2196F3; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-left: 15px; white-space: nowrap;">
+                Modifier
+            </button>
+        </div>
+    </div>
+
+    <!-- Formulaire d'édition du message (masqué par défaut) -->
+    <div id="editMessageAidantsForm" style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px; border-radius: 4px; display: none;">
+        <h3 style="margin: 0 0 10px 0; color: #856404; font-size: 1.1rem;">✏️ Modifier le message pour les aidants</h3>
+        <p style="color: #856404; font-size: 0.9rem; margin: 0 0 10px 0;">Ce message est visible uniquement dans l'interface d'administration. Utilisez-le pour communiquer avec les autres aidants.</p>
+        <textarea id="messageAidantsInput" style="width: 100%; min-height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial; font-size: 14px; resize: vertical; margin-bottom: 10px;"></textarea>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="saveMessageAidants()" style="background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                Enregistrer
+            </button>
+            <button onclick="cancelEditMessageAidants()" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                Annuler
+            </button>
+        </div>
+    </div>
+
     <div id="message" class="message"></div>
 
     <div class="form-container">
@@ -776,11 +804,84 @@
             });
         });
 
+        // Gestion du message pour les aidants
+        function loadMessageAidants() {
+            fetch('message-aidants.php?t=' + new Date().getTime())
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.texte && data.texte.trim() !== '') {
+                        document.getElementById('messageAidantsTexte').textContent = data.texte;
+                        document.getElementById('messageAidants').style.display = 'block';
+                    } else {
+                        // Si pas de message, afficher quand même la zone mais avec un texte par défaut
+                        document.getElementById('messageAidantsTexte').textContent = 'Aucun message pour le moment. Cliquez sur "Modifier" pour en ajouter un.';
+                        document.getElementById('messageAidants').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur chargement message aidants:', error);
+                    // En cas d'erreur, on affiche quand même la zone
+                    document.getElementById('messageAidantsTexte').textContent = 'Aucun message pour le moment. Cliquez sur "Modifier" pour en ajouter un.';
+                    document.getElementById('messageAidants').style.display = 'block';
+                });
+        }
+
+        function editMessageAidants() {
+            // Récupérer le message actuel
+            fetch('message-aidants.php?t=' + new Date().getTime())
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('messageAidantsInput').value = data.texte || '';
+                    document.getElementById('messageAidants').style.display = 'none';
+                    document.getElementById('editMessageAidantsForm').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    document.getElementById('messageAidantsInput').value = '';
+                    document.getElementById('messageAidants').style.display = 'none';
+                    document.getElementById('editMessageAidantsForm').style.display = 'block';
+                });
+        }
+
+        function cancelEditMessageAidants() {
+            document.getElementById('editMessageAidantsForm').style.display = 'none';
+            document.getElementById('messageAidants').style.display = 'block';
+        }
+
+        function saveMessageAidants() {
+            const texte = document.getElementById('messageAidantsInput').value;
+
+            fetch('message-aidants.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                },
+                credentials: 'include',
+                body: JSON.stringify({ texte: texte, csrf_token: csrfToken })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Message enregistré avec succès !', 'success');
+                    loadMessageAidants();
+                    document.getElementById('editMessageAidantsForm').style.display = 'none';
+                } else {
+                    showMessage('Erreur : ' + (data.error || 'Erreur inconnue'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showMessage('Erreur lors de l\'enregistrement du message', 'error');
+            });
+        }
+
         // Initialiser
         toggleEventType();
         loadEvents();
         loadImages();
         loadInfos();
+        loadMessageAidants();
     </script>
 </body>
 </html>

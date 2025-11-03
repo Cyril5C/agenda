@@ -29,4 +29,12 @@ else
     echo "✅ infos.json existe déjà"
 fi
 
+# Créer message-aidants.json s'il n'existe pas
+if [ ! -f message-aidants.json ]; then
+    echo "📝 Création de message-aidants.json depuis l'exemple..."
+    cp message-aidants.json.example message-aidants.json
+else
+    echo "✅ message-aidants.json existe déjà"
+fi
+
 echo "✅ Initialisation terminée !"
