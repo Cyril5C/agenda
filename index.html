@@ -353,6 +353,15 @@
         // Fonction pour tout recharger
         function refreshAll() {
             console.log('Rafraîchissement des données...', new Date().toLocaleTimeString());
+
+            // Vérifier si la date a changé (passage à minuit)
+            const nowDate = new Date().toDateString();
+            if (nowDate !== currentDate) {
+                console.log('Changement de jour détecté, forçage du rebuild');
+                // Forcer le rebuild en réinitialisant currentEventsJson
+                currentEventsJson = '';
+            }
+
             loadEvents();
             loadImages();
             loadInfos();
