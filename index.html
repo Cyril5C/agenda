@@ -223,11 +223,15 @@
                     return;
                 }
 
-                // Ajouter une classe si une seule image
+                // Ajouter une classe selon le nombre d'images
                 if (data.images.length === 1) {
                     galerie.classList.add('galerie-single');
-                } else {
+                    galerie.classList.remove('galerie-diptych');
+                } else if (data.images.length === 2) {
+                    galerie.classList.add('galerie-diptych');
                     galerie.classList.remove('galerie-single');
+                } else {
+                    galerie.classList.remove('galerie-single', 'galerie-diptych');
                 }
 
                 data.images.forEach(image => {
