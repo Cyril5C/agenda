@@ -373,11 +373,37 @@
             loadInfos();
         }
 
+        // Variable pour stocker la version actuelle
+        let currentBuildTime = null;
+
+        // Fonction pour vérifier si une nouvelle version est disponible
+        function checkVersion() {
+            fetch('version.json?t=' + new Date().getTime())
+                .then(response => response.json())
+                .then(data => {
+                    if (currentBuildTime === null) {
+                        // Premier chargement, on stocke la version
+                        currentBuildTime = data.buildTime;
+                        console.log('Version initiale:', currentBuildTime);
+                    } else if (data.buildTime !== currentBuildTime) {
+                        // Nouvelle version détectée, on recharge la page
+                        console.log('Nouvelle version détectée:', data.buildTime, '(ancienne:', currentBuildTime + ')');
+                        console.log('Rechargement de la page...');
+                        location.reload(true);
+                    }
+                })
+                .catch(error => console.error('Erreur lors de la vérification de version:', error));
+        }
+
         // Chargement initial
+        checkVersion();
         refreshAll();
 
         // Recharger les données toutes les 60 secondes
         setInterval(refreshAll, 60000);
+
+        // Vérifier la version toutes les 5 minutes
+        setInterval(checkVersion, 300000);
     </script>
 </body>
 </html>
