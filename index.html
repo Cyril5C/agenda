@@ -364,6 +364,8 @@
                 console.log('Changement de jour détecté, forçage du rebuild');
                 // Forcer le rebuild en réinitialisant currentEventsJson
                 currentEventsJson = '';
+                // Mettre à jour currentDate pour éviter de forcer le rebuild à chaque refresh
+                currentDate = nowDate;
             }
 
             loadEvents();
