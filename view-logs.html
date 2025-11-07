@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs Client</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+        h1 {
+            color: #4ec9b0;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #1177bb;
+        }
+        .info {
+            color: #4ec9b0;
+            margin-bottom: 10px;
+        }
+        .log-container {
+            background-color: #252526;
+            border: 1px solid #3c3c3c;
+            border-radius: 4px;
+            padding: 15px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .log-line {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid transparent;
+        }
+        .log-line.INFO {
+            border-left-color: #4ec9b0;
+        }
+        .log-line.WARN {
+            border-left-color: #dcdcaa;
+            color: #dcdcaa;
+        }
+        .log-line.ERROR {
+            border-left-color: #f48771;
+            color: #f48771;
+        }
+        .log-line.DEBUG {
+            border-left-color: #569cd6;
+            color: #9cdcfe;
+        }
+        .timestamp {
+            color: #858585;
+        }
+        .level {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>📋 Logs Client - Planning Papou Mamine</h1>
+
+    <div class="controls">
+        <button onclick="loadLogs()">🔄 Rafraîchir</button>
+        <button onclick="clearLogs()">🗑️ Vider les logs</button>
+        <button onclick="toggleAutoRefresh()">⏱️ Auto-refresh: <span id="autoRefreshStatus">OFF</span></button>
+    </div>
+
+    <div class="info" id="logInfo">Chargement...</div>
+
+    <div class="log-container" id="logContainer">
+        <div style="color: #858585;">Aucun log pour le moment</div>
+    </div>
+
+    <script>
+        let autoRefreshInterval = null;
+
+        function loadLogs() {
+            fetch('client-logs.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error('Erreur:', data.error);
+                        return;
+                    }
+
+                    const info = document.getElementById('logInfo');
+                    info.textContent = `${data.count} logs affichés (${data.total} au total)`;
+
+                    const container = document.getElementById('logContainer');
+
+                    if (data.logs.length === 0) {
+                        container.innerHTML = '<div style="color: #858585;">Aucun log pour le moment</div>';
+                        return;
+                    }
+
+                    container.innerHTML = '';
+
+                    data.logs.forEach(line => {
+                        const div = document.createElement('div');
+
+                        // Parser la ligne de log : [timestamp] [level] message
+                        const match = line.match(/\[(.*?)\] \[(.*?)\] (.*)/);
+                        if (match) {
+                            const [, timestamp, level, message] = match;
+                            div.className = `log-line ${level}`;
+                            div.innerHTML = `<span class="timestamp">${timestamp}</span> <span class="level">[${level}]</span> ${escapeHtml(message)}`;
+                        } else {
+                            div.className = 'log-line';
+                            div.textContent = line;
+                        }
+
+                        container.appendChild(div);
+                    });
+
+                    // Auto-scroll vers le bas
+                    container.scrollTop = container.scrollHeight;
+                })
+                .catch(error => {
+                    console.error('Erreur de chargement:', error);
+                    document.getElementById('logInfo').textContent = 'Erreur de chargement des logs';
+                });
+        }
+
+        function clearLogs() {
+            if (!confirm('Êtes-vous sûr de vouloir vider tous les logs ?')) {
+                return;
+            }
+            // TODO: Implémenter la suppression côté serveur si nécessaire
+            alert('Fonctionnalité à implémenter');
+        }
+
+        function toggleAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                document.getElementById('autoRefreshStatus').textContent = 'OFF';
+            } else {
+                autoRefreshInterval = setInterval(loadLogs, 5000); // Toutes les 5 secondes
+                document.getElementById('autoRefreshStatus').textContent = 'ON (5s)';
+                loadLogs(); // Charger immédiatement
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Charger les logs au démarrage
+        loadLogs();
+    </script>
+</body>
+</html>

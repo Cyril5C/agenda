@@ -45,12 +45,30 @@
         const datesRow = document.getElementById('dates');
         const contentRow = document.getElementById('content');
 
+        // Fonction pour logger côté serveur
+        function serverLog(level, message, data = null) {
+            const payload = { level, message };
+            if (data) payload.data = data;
+
+            fetch('client-logs.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(error => console.error('Erreur log serveur:', error));
+
+            // Logger aussi dans la console
+            console.log(`[${level}] ${message}`, data || '');
+        }
+
         // Variable pour stocker les événements actuels
         let currentEventsJson = '';
         let currentDate = new Date().toDateString();
 
         // Variable globale pour stocker les événements
         let allEvents = [];
+
+        // Logger l'initialisation
+        serverLog('INFO', 'Page chargée', { currentDate });
 
         // Fonction pour charger les événements
         function loadEvents() {
@@ -73,10 +91,13 @@
                 }
 
                 if (dateChanged) {
-                    console.log('Changement de date détecté:', currentDate, '->', newDate);
+                    serverLog('INFO', 'Changement de date détecté dans loadEvents()', {
+                        oldDate: currentDate,
+                        newDate: newDate
+                    });
                 }
                 if (eventsChanged) {
-                    console.log('Changement des événements détecté');
+                    serverLog('DEBUG', 'Changement des événements détecté');
                 }
                 console.log('Événements chargés:', evenements);
                 console.log('Régénération du tableau nécessaire');
@@ -370,7 +391,10 @@
             // Vérifier si la date a changé (passage à minuit)
             const nowDate = new Date().toDateString();
             if (nowDate !== currentDate) {
-                console.log('Changement de jour détecté dans refreshAll(), forçage du rebuild');
+                serverLog('WARN', 'Changement de jour détecté dans refreshAll(), forçage du rebuild', {
+                    oldDate: currentDate,
+                    nowDate: nowDate
+                });
                 // Forcer le rebuild en réinitialisant currentEventsJson
                 currentEventsJson = '';
                 // NE PAS mettre à jour currentDate ici, laisser loadEvents() le faire
@@ -393,15 +417,20 @@
                     if (currentBuildTime === null) {
                         // Premier chargement, on stocke la version
                         currentBuildTime = data.buildTime;
-                        console.log('Version initiale:', currentBuildTime);
+                        serverLog('INFO', 'Version initiale chargée', { buildTime: currentBuildTime });
                     } else if (data.buildTime !== currentBuildTime) {
                         // Nouvelle version détectée, on recharge la page
-                        console.log('Nouvelle version détectée:', data.buildTime, '(ancienne:', currentBuildTime + ')');
-                        console.log('Rechargement de la page...');
+                        serverLog('WARN', 'Nouvelle version détectée, rechargement...', {
+                            oldBuildTime: currentBuildTime,
+                            newBuildTime: data.buildTime
+                        });
                         location.reload(true);
                     }
                 })
-                .catch(error => console.error('Erreur lors de la vérification de version:', error));
+                .catch(error => {
+                    console.error('Erreur lors de la vérification de version:', error);
+                    serverLog('ERROR', 'Erreur vérification version', { error: error.message });
+                });
         }
 
         // Chargement initial
