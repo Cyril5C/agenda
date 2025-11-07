@@ -62,13 +62,22 @@
                 const newDate = new Date().toDateString();
 
                 // Vérifier si on doit régénérer le tableau
-                const needsRebuild = (newEventsJson !== currentEventsJson) || (newDate !== currentDate);
+                // IMPORTANT: toujours régénérer si la date a changé, même si les événements sont identiques
+                const eventsChanged = newEventsJson !== currentEventsJson;
+                const dateChanged = newDate !== currentDate;
+                const needsRebuild = eventsChanged || dateChanged;
 
                 if (!needsRebuild) {
                     console.log('Aucun changement, pas de régénération du tableau');
                     return;
                 }
 
+                if (dateChanged) {
+                    console.log('Changement de date détecté:', currentDate, '->', newDate);
+                }
+                if (eventsChanged) {
+                    console.log('Changement des événements détecté');
+                }
                 console.log('Événements chargés:', evenements);
                 console.log('Régénération du tableau nécessaire');
 
@@ -361,11 +370,11 @@
             // Vérifier si la date a changé (passage à minuit)
             const nowDate = new Date().toDateString();
             if (nowDate !== currentDate) {
-                console.log('Changement de jour détecté, forçage du rebuild');
+                console.log('Changement de jour détecté dans refreshAll(), forçage du rebuild');
                 // Forcer le rebuild en réinitialisant currentEventsJson
                 currentEventsJson = '';
-                // Mettre à jour currentDate pour éviter de forcer le rebuild à chaque refresh
-                currentDate = nowDate;
+                // NE PAS mettre à jour currentDate ici, laisser loadEvents() le faire
+                // pour que la détection de changement de date fonctionne dans loadEvents()
             }
 
             loadEvents();
