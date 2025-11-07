@@ -126,13 +126,15 @@ td {
     grid-template-columns: 1fr 1fr;
     gap: 0;
     padding: 0;
-    align-content: stretch;
+    align-content: center;
+    align-items: center;
 }
 
 .galerie-diptych img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    max-height: 50vh;
+    object-fit: contain;
 }
 
 th.info-header {
