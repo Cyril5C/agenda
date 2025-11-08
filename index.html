@@ -45,6 +45,14 @@
         const datesRow = document.getElementById('dates');
         const contentRow = document.getElementById('content');
 
+        // Fonction pour obtenir la date locale au format YYYY-MM-DD (sans conversion UTC)
+        function getLocalDateString(date = new Date()) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         // Fonction pour logger côté serveur
         function serverLog(level, message, data = null) {
             const payload = { level, message };
@@ -62,7 +70,7 @@
 
         // Variable pour stocker les événements actuels
         let currentEventsJson = '';
-        let currentDate = new Date().toDateString();
+        let currentDate = getLocalDateString(); // Format YYYY-MM-DD en heure locale
 
         // Variable globale pour stocker les événements
         let allEvents = [];
@@ -77,7 +85,7 @@
             .then(evenements => {
                 // Comparer avec les événements actuels pour détecter un changement
                 const newEventsJson = JSON.stringify(evenements || []);
-                const newDate = new Date().toDateString();
+                const newDate = getLocalDateString(); // Format YYYY-MM-DD en heure locale
 
                 // Vérifier si on doit régénérer le tableau
                 // IMPORTANT: toujours régénérer si la date a changé, même si les événements sont identiques
@@ -124,8 +132,8 @@
                     const numeroJour = date.getDate();
                     const nomMois = mois[date.getMonth()];
 
-                    // Format de date YYYY-MM-DD pour comparaison
-                    const dateStr = date.toISOString().split('T')[0];
+                    // Format de date YYYY-MM-DD pour comparaison (en heure locale)
+                    const dateStr = getLocalDateString(date);
 
                     const th = document.createElement('th');
                     // Ajouter des labels pour aujourd'hui, demain, après-demain
@@ -357,7 +365,7 @@
             for (let i = 0; i < 30 && events.length < count; i++) {
                 const date = new Date(startDate);
                 date.setDate(date.getDate() + i);
-                const dateStr = date.toISOString().split('T')[0];
+                const dateStr = getLocalDateString(date); // Format YYYY-MM-DD en heure locale
                 const jour = jours[date.getDay()];
 
                 // Collecter les événements de ce jour (uniquement les événements avec date fixe, pas les récurrents)
@@ -389,7 +397,7 @@
             console.log('Rafraîchissement des données...', new Date().toLocaleTimeString());
 
             // Vérifier si la date a changé (passage à minuit)
-            const nowDate = new Date().toDateString();
+            const nowDate = getLocalDateString(); // Format YYYY-MM-DD en heure locale
             if (nowDate !== currentDate) {
                 serverLog('WARN', 'Changement de jour détecté dans refreshAll(), forçage du rebuild', {
                     oldDate: currentDate,
