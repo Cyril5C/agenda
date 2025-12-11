@@ -172,9 +172,14 @@
                                     return true; // Tous les jours
                                 }
                                 if (evt.recurrent === 'hebdomadaire') {
-                                    // Afficher tous les jours de la semaine pour l'instant
-                                    // TODO: utiliser DTSTART pour déterminer le jour de la semaine
-                                    return true;
+                                    // Afficher le même jour de la semaine que la date de début
+                                    if (evt.date) {
+                                        const eventDate = new Date(evt.date + 'T00:00:00');
+                                        const eventDayOfWeek = eventDate.getDay(); // 0=Dimanche, 1=Lundi, etc.
+                                        const currentDayOfWeek = date.getDay();
+                                        return eventDayOfWeek === currentDayOfWeek;
+                                    }
+                                    return false;
                                 }
                                 if (evt.recurrent === 'mensuel') {
                                     // Afficher le même jour du mois
