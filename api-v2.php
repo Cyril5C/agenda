@@ -383,11 +383,35 @@ if ($method === 'GET') {
     echo json_encode($result);
 
 } elseif ($method === 'DELETE') {
-    // Supprimer un événement
+    // Supprimer un événement ou une occurrence
     $input = json_decode(file_get_contents('php://input'), true);
 
-    $result = deleteEvent($input);
-    echo json_encode($result);
+    // Si 'occurrence_date' est présent, supprimer une occurrence spécifique
+    if (isset($input['occurrence_date']) && !empty($input['uid'])) {
+        $client = getDataClient();
+
+        if ($client) {
+            try {
+                if ($client->deleteOccurrence($input['uid'], $input['occurrence_date'])) {
+                    echo json_encode(['success' => true, 'message' => 'Occurrence supprimée']);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Échec de la suppression de l\'occurrence']);
+                }
+            } catch (Exception $e) {
+                logError('Erreur CalDAV deleteOccurrence: ' . $e->getMessage());
+                http_response_code(500);
+                echo json_encode(['error' => 'Erreur serveur CalDAV']);
+            }
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'CalDAV requis pour supprimer une occurrence']);
+        }
+    } else {
+        // Suppression complète de l'événement
+        $result = deleteEvent($input);
+        echo json_encode($result);
+    }
 
 } else {
     http_response_code(405);

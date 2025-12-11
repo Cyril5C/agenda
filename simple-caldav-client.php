@@ -105,6 +105,62 @@ class SimpleCalDAVClient {
     }
 
     /**
+     * Supprime une occurrence spécifique d'un événement récurrent
+     * @param string $uid L'UID de l'événement récurrent
+     * @param string $date La date de l'occurrence à supprimer (format YYYY-MM-DD)
+     */
+    public function deleteOccurrence($uid, $date) {
+        // 1. Récupérer l'événement existant
+        $eventUrl = $this->calendarUrl . $uid . '.ics';
+        $response = $this->request('GET', $eventUrl);
+
+        if ($response['code'] != 200) {
+            return false;
+        }
+
+        $icsContent = $response['body'];
+
+        // 2. Ajouter EXDATE à l'événement
+        $exdate = 'EXDATE;VALUE=DATE:' . str_replace('-', '', $date);
+
+        // Chercher où insérer l'EXDATE (après RRULE ou DTSTART)
+        $lines = explode("\n", $icsContent);
+        $newLines = [];
+        $exdateAdded = false;
+
+        foreach ($lines as $line) {
+            $newLines[] = $line;
+
+            // Ajouter EXDATE après RRULE
+            if (!$exdateAdded && strpos($line, 'RRULE:') === 0) {
+                $newLines[] = $exdate;
+                $exdateAdded = true;
+            }
+        }
+
+        // Si pas de RRULE trouvé, ajouter après DTSTART
+        if (!$exdateAdded) {
+            $newLines = [];
+            foreach ($lines as $line) {
+                $newLines[] = $line;
+                if (strpos($line, 'DTSTART') === 0) {
+                    $newLines[] = $exdate;
+                    $exdateAdded = true;
+                }
+            }
+        }
+
+        $updatedIcs = implode("\n", $newLines);
+
+        // 3. Mettre à jour l'événement
+        $response = $this->request('PUT', $eventUrl, $updatedIcs, [
+            'Content-Type: text/calendar; charset=utf-8'
+        ]);
+
+        return $response['code'] >= 200 && $response['code'] < 300;
+    }
+
+    /**
      * Parse les événements depuis la réponse XML CalDAV
      */
     private function parseEvents($xmlBody) {

@@ -267,6 +267,21 @@
                             titre.textContent = evt.titre;
                             postit.appendChild(titre);
 
+                            // Ajouter bouton de suppression pour les événements récurrents
+                            if (evt.recurrent && evt.uid) {
+                                const deleteBtn = document.createElement('button');
+                                deleteBtn.className = 'postit-delete-occurrence';
+                                deleteBtn.textContent = '×';
+                                deleteBtn.title = 'Supprimer cette occurrence';
+                                deleteBtn.onclick = (e) => {
+                                    e.stopPropagation();
+                                    if (confirm('Supprimer uniquement cette occurrence du ' + dateStr + ' ?')) {
+                                        deleteOccurrence(evt.uid, dateStr);
+                                    }
+                                };
+                                postit.appendChild(deleteBtn);
+                            }
+
                             td.appendChild(postit);
                         });
 
@@ -471,6 +486,35 @@
             loadEvents();
             loadImages();
             loadInfos();
+        }
+
+        // Fonction pour supprimer une occurrence d'un événement récurrent
+        function deleteOccurrence(uid, date) {
+            fetch('api-v2.php', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    uid: uid,
+                    occurrence_date: date
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Forcer le rechargement complet
+                    currentEventsJson = '';
+                    loadEvents();
+                } else {
+                    alert('Erreur: ' + (data.error || 'Impossible de supprimer l\'occurrence'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la suppression de l\'occurrence');
+            });
         }
 
         // Variable pour stocker la version actuelle
