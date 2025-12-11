@@ -16,13 +16,24 @@ class CalDAVClient {
     private $username;
 
     public function __construct() {
-        $baseUrl = config('caldav_url');
+        $caldavUrl = config('caldav_url');
         $this->username = config('caldav_username');
         $password = config('caldav_password');
         $calendarName = config('caldav_calendar');
 
-        if (empty($baseUrl) || empty($this->username) || empty($password)) {
+        if (empty($caldavUrl) || empty($this->username) || empty($password)) {
             throw new Exception('Configuration CalDAV incomplète. Vérifiez les variables CALDAV_URL, CALDAV_USERNAME et CALDAV_PASSWORD.');
+        }
+
+        // Déterminer si l'URL est déjà complète (contient /calendars/) ou juste la base DAV
+        if (strpos($caldavUrl, '/calendars/') !== false) {
+            // URL complète du calendrier fournie (ex: https://host/dav/calendars/user/cal/)
+            $baseUrl = rtrim($caldavUrl, '/');
+            $this->calendarPath = '/';
+        } else {
+            // URL de base DAV fournie, construire le chemin
+            $baseUrl = rtrim($caldavUrl, '/');
+            $this->calendarPath = "/calendars/{$this->username}/{$calendarName}/";
         }
 
         // Configuration du client
@@ -33,10 +44,6 @@ class CalDAVClient {
         ];
 
         $this->client = new Client($settings);
-
-        // Construire le chemin du calendrier
-        // Format Nextcloud: /remote.php/dav/calendars/{username}/{calendar-name}/
-        $this->calendarPath = "/calendars/{$this->username}/{$calendarName}/";
     }
 
     /**

@@ -4,27 +4,32 @@
  * Gestion des environnements dev/prod
  */
 
-// Charger le fichier .env s'il existe (mode dev local)
-$dotenv = __DIR__ . '/.env';
-if (file_exists($dotenv)) {
-    $lines = @file($dotenv, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    if ($lines !== false) {
-        foreach ($lines as $line) {
-            if (strpos(trim($line), '#') === 0 || strpos($line, '=') === false) {
-                continue;
-            }
+// Fonction pour charger un fichier .env
+function loadEnvFile($filepath) {
+    if (file_exists($filepath)) {
+        $lines = @file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if ($lines !== false) {
+            foreach ($lines as $line) {
+                if (strpos(trim($line), '#') === 0 || strpos($line, '=') === false) {
+                    continue;
+                }
 
-            list($key, $value) = explode('=', $line, 2);
-            $key = trim($key);
-            $value = trim($value, '"\'');
+                list($key, $value) = explode('=', $line, 2);
+                $key = trim($key);
+                $value = trim($value, '"\'');
 
-            if (!isset($_ENV[$key]) && !getenv($key)) {
-                putenv("$key=$value");
-                $_ENV[$key] = $value;
+                if (!isset($_ENV[$key]) && !getenv($key)) {
+                    putenv("$key=$value");
+                    $_ENV[$key] = $value;
+                }
             }
         }
     }
 }
+
+// Charger les fichiers .env (priorité : .env.local > .env)
+loadEnvFile(__DIR__ . '/.env');
+loadEnvFile(__DIR__ . '/.env.local');
 
 // Définir l'environnement
 define('APP_ENV', getenv('APP_ENV') ?: 'dev');
@@ -37,18 +42,28 @@ $config = [
         'images_file' => __DIR__ . '/images.json',
         'infos_file' => __DIR__ . '/infos.json',
         'use_gist' => false,
+        'use_caldav' => getenv('CALDAV_URL') ? true : false, // V2: Auto-detect CalDAV
+        'caldav_url' => getenv('CALDAV_URL') ?: '',
+        'caldav_username' => getenv('CALDAV_USERNAME') ?: '',
+        'caldav_password' => getenv('CALDAV_PASSWORD') ?: '',
+        'caldav_calendar' => getenv('CALDAV_CALENDAR') ?: '',
         'cors_origin' => '*',
         'error_reporting' => E_ALL,
         'display_errors' => true,
         'log_file' => __DIR__ . '/logs/app.log',
     ],
     'prod' => [
-        'use_gist' => true,
+        'use_gist' => getenv('GIST_TOKEN') ? true : false, // V1: Obsolète
+        'use_caldav' => getenv('CALDAV_URL') ? true : false, // V2: Priorité à CalDAV
         'gist_id' => getenv('GIST_ID') ?: '97fc1368a60bc62f21493ac8c3e519d0',
         'gist_token' => getenv('GIST_TOKEN') ?: '',
         'gist_filename' => 'evenements.json',
         'gist_infos_filename' => 'infos.json',
         'gist_images_filename' => 'images.json',
+        'caldav_url' => getenv('CALDAV_URL') ?: '',
+        'caldav_username' => getenv('CALDAV_USERNAME') ?: '',
+        'caldav_password' => getenv('CALDAV_PASSWORD') ?: '',
+        'caldav_calendar' => getenv('CALDAV_CALENDAR') ?: '',
         'db_file' => __DIR__ . '/evenements.json', // Fallback si Gist indisponible
         'images_file' => __DIR__ . '/images.json',
         'infos_file' => __DIR__ . '/infos.json',
