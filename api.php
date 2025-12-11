@@ -4,6 +4,11 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/csrf.php';
 
+// V2: Charger le client CalDAV si configuré
+if (config('use_caldav')) {
+    require_once __DIR__ . '/simple-caldav-client.php';
+}
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: ' . config('cors_origin'));
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
@@ -110,6 +115,20 @@ function saveToGist($events) {
 
 // Lire les événements
 function getEvents() {
+    // V2: Priorité à CalDAV
+    if (config('use_caldav')) {
+        try {
+            $client = new SimpleCalDAVClient();
+            $events = $client->getEvents();
+            return $events;
+        } catch (Exception $e) {
+            logError('Erreur CalDAV getEvents: ' . $e->getMessage());
+            // Pas de fallback pour CalDAV, on retourne une erreur
+            return [];
+        }
+    }
+
+    // V1: Gist (obsolète)
     if (config('use_gist')) {
         $events = getFromGist();
         if ($events !== null) {
@@ -119,6 +138,7 @@ function getEvents() {
         logError('Fallback sur le fichier local après échec Gist');
     }
 
+    // Fallback fichier local
     global $jsonFile;
     if (!file_exists($jsonFile)) {
         return [];
