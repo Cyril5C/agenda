@@ -258,8 +258,8 @@
             }
         }
 
-        // Variable globale pour stocker l'index de l'événement en cours de modification
-        let editingEventIndex = null;
+        // Variable globale pour stocker l'identifiant de l'événement en cours de modification
+        let editingEventId = null;
 
         // Détecter l'environnement et mettre à jour le titre
         fetch('env.php?t=' + new Date().getTime())
@@ -298,7 +298,7 @@
         }
 
         function loadEvents() {
-            fetch('api.php?t=' + new Date().getTime())
+            fetch('api-v2.php?t=' + new Date().getTime())
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Erreur HTTP: ' + response.status);
@@ -332,7 +332,8 @@
                     const eventsRecurrent = [];
 
                     events.forEach((event, index) => {
-                        event.originalIndex = index; // Garder l'index original pour la suppression
+                        // Pour compatibilité V1, garder l'index si pas d'UID
+                        event.eventId = event.uid || index;
                         if (event.date) {
                             eventsWithDate.push(event);
                         } else if (event.recurrent) {
@@ -379,11 +380,11 @@
                         }
 
                         eventDiv.innerHTML = `
-                             <strong>${event.titre}</strong><br>
+                             <strong>${escapeHtml(event.titre)}</strong><br>
                             ${dateInfo}
                             ${heureInfo}
-                            <button onclick="editEvent(${event.originalIndex})" style="background-color: #3498db; margin-right: 10px;">Modifier</button>
-                            <button onclick="deleteEvent(${event.originalIndex})">Supprimer</button>
+                            <button onclick="editEvent('${event.eventId}')" style="background-color: #3498db; margin-right: 10px;">Modifier</button>
+                            <button onclick="deleteEvent('${event.eventId}')" style="background-color: #e74c3c;">Supprimer</button>
                         `;
 
                         eventsList.appendChild(eventDiv);
@@ -419,19 +420,20 @@
                 });
         }
 
-        function editEvent(index) {
+        function editEvent(eventId) {
             // Charger les événements
-            fetch('api.php?t=' + new Date().getTime())
+            fetch('api-v2.php?t=' + new Date().getTime())
                 .then(response => response.json())
                 .then(events => {
-                    const event = events[index];
+                    // Trouver l'événement par UID ou index
+                    const event = events.find(e => (e.uid && e.uid === eventId) || events.indexOf(e) === parseInt(eventId));
                     if (!event) {
                         showMessage('Événement non trouvé', 'error');
                         return;
                     }
 
-                    // Stocker l'index en cours de modification
-                    editingEventIndex = index;
+                    // Stocker l'identifiant en cours de modification
+                    editingEventId = event.uid || events.indexOf(event);
 
                     // Changer le titre du formulaire et les boutons
                     document.getElementById('formTitle').textContent = 'Modifier l\'événement';
@@ -468,7 +470,7 @@
         }
 
         function cancelEdit() {
-            editingEventIndex = null;
+            editingEventId = null;
             document.getElementById('formTitle').textContent = 'Ajouter un événement';
             document.getElementById('submitButton').textContent = 'Ajouter l\'événement';
             document.getElementById('cancelButton').style.display = 'none';
@@ -477,19 +479,29 @@
             toggleEventType();
         }
 
-        function deleteEvent(index) {
+        function deleteEvent(eventId) {
             if (!confirm('Voulez-vous vraiment supprimer cet événement ?')) {
                 return;
             }
 
-            fetch('api.php', {
+            // Construire le payload selon que c'est un UID ou un index
+            const payload = { csrf_token: csrfToken };
+            if (typeof eventId === 'string' && eventId.includes('@')) {
+                // C'est un UID CalDAV
+                payload.uid = eventId;
+            } else {
+                // C'est un index legacy
+                payload.index = parseInt(eventId);
+            }
+
+            fetch('api-v2.php', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-Token': csrfToken
                 },
                 credentials: 'include',
-                body: JSON.stringify({ index: index, csrf_token: csrfToken })
+                body: JSON.stringify(payload)
             })
             .then(response => response.json())
             .then(data => {
@@ -533,20 +545,26 @@
             }
 
             // Déterminer si on modifie ou ajoute
-            const isEditing = editingEventIndex !== null;
+            const isEditing = editingEventId !== null;
             const method = isEditing ? 'PUT' : 'POST';
             const successMessage = isEditing ? 'Événement modifié avec succès !' : 'Événement ajouté avec succès !';
 
-            // Ajouter l'index si on modifie
+            // Ajouter l'identifiant si on modifie
             if (isEditing) {
-                event.index = editingEventIndex;
+                if (typeof editingEventId === 'string' && editingEventId.includes('@')) {
+                    // C'est un UID CalDAV
+                    event.uid = editingEventId;
+                } else {
+                    // C'est un index legacy
+                    event.index = parseInt(editingEventId);
+                }
             }
 
             // Ajouter le token CSRF
             event.csrf_token = csrfToken;
 
             // Envoyer l'événement à l'API PHP
-            fetch('api.php', {
+            fetch('api-v2.php', {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
