@@ -331,10 +331,11 @@
                     events.forEach((event, index) => {
                         // Pour compatibilité V1, garder l'index si pas d'UID
                         event.eventId = event.uid || index;
-                        if (event.date) {
-                            eventsWithDate.push(event);
-                        } else if (event.recurrent) {
+                        // Priorité à recurrent : si un événement a recurrent, c'est récurrent même s'il a une date
+                        if (event.recurrent) {
                             eventsRecurrent.push(event);
+                        } else if (event.date) {
+                            eventsWithDate.push(event);
                         }
                     });
 
