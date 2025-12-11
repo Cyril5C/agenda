@@ -111,16 +111,13 @@
 
             <div id="recurrentFields">
                 <div class="form-group">
-                    <label>Jours de récurrence</label>
-                    <div class="checkbox-group">
-                        <label><input type="checkbox" name="jours" value="Lundi"> Lundi</label>
-                        <label><input type="checkbox" name="jours" value="Mardi"> Mardi</label>
-                        <label><input type="checkbox" name="jours" value="Mercredi"> Mercredi</label>
-                        <label><input type="checkbox" name="jours" value="Jeudi"> Jeudi</label>
-                        <label><input type="checkbox" name="jours" value="Vendredi"> Vendredi</label>
-                        <label><input type="checkbox" name="jours" value="Samedi"> Samedi</label>
-                        <label><input type="checkbox" name="jours" value="Dimanche"> Dimanche</label>
-                    </div>
+                    <label for="recurrent">Fréquence de récurrence</label>
+                    <select id="recurrent" name="recurrent" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="quotidien">Quotidien (tous les jours)</option>
+                        <option value="hebdomadaire">Hebdomadaire (toutes les semaines)</option>
+                        <option value="mensuel">Mensuel (tous les mois)</option>
+                        <option value="annuel">Annuel (tous les ans)</option>
+                    </select>
                 </div>
             </div>
 
@@ -371,7 +368,14 @@
                             const dateTexte = formatDateToText(event.date);
                             dateInfo = `<strong>Date:</strong> ${dateTexte}<br>`;
                         } else if (event.recurrent) {
-                            dateInfo = `<strong>Récurrent:</strong> ${event.recurrent.join(', ')}<br>`;
+                            const recurrentLabels = {
+                                'quotidien': 'Quotidien (tous les jours)',
+                                'hebdomadaire': 'Hebdomadaire (toutes les semaines)',
+                                'mensuel': 'Mensuel (tous les mois)',
+                                'annuel': 'Annuel (tous les ans)'
+                            };
+                            const label = recurrentLabels[event.recurrent] || event.recurrent;
+                            dateInfo = `<strong>Récurrent:</strong> ${label}<br>`;
                         }
 
                         let heureInfo = '';
@@ -454,10 +458,8 @@
                         document.querySelector('input[name="eventType"][value="recurrent"]').checked = true;
                         toggleEventType();
 
-                        // Cocher les jours récurrents
-                        document.querySelectorAll('input[name="jours"]').forEach(cb => {
-                            cb.checked = event.recurrent.includes(cb.value);
-                        });
+                        // Sélectionner la fréquence de récurrence
+                        document.getElementById('recurrent').value = event.recurrent;
                     }
 
                     // Scroller vers le formulaire
@@ -535,13 +537,7 @@
                     return;
                 }
             } else {
-                const joursChecked = Array.from(document.querySelectorAll('input[name="jours"]:checked'))
-                    .map(cb => cb.value);
-                if (joursChecked.length === 0) {
-                    showMessage('Veuillez sélectionner au moins un jour', 'error');
-                    return;
-                }
-                event.recurrent = joursChecked;
+                event.recurrent = document.getElementById('recurrent').value;
             }
 
             // Déterminer si on modifie ou ajoute
