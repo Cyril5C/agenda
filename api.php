@@ -113,38 +113,62 @@ function saveToGist($events) {
     return true;
 }
 
-// Lire les événements
+// Lire les événements (filtre les événements passés)
 function getEvents() {
+    $events = [];
+
     // V2: Priorité à CalDAV
     if (config('use_caldav')) {
         try {
             $client = new SimpleCalDAVClient();
             $events = $client->getEvents();
-            return $events;
         } catch (Exception $e) {
             logError('Erreur CalDAV getEvents: ' . $e->getMessage());
             // Pas de fallback pour CalDAV, on retourne une erreur
             return [];
         }
     }
-
     // V1: Gist (obsolète)
-    if (config('use_gist')) {
+    elseif (config('use_gist')) {
         $events = getFromGist();
-        if ($events !== null) {
-            return $events;
+        if ($events === null) {
+            // Fallback sur le fichier local si Gist échoue
+            logError('Fallback sur le fichier local après échec Gist');
+            global $jsonFile;
+            if (file_exists($jsonFile)) {
+                $content = file_get_contents($jsonFile);
+                $events = json_decode($content, true) ?: [];
+            }
         }
-        // Fallback sur le fichier local si Gist échoue
-        logError('Fallback sur le fichier local après échec Gist');
+    }
+    // Fallback fichier local
+    else {
+        global $jsonFile;
+        if (!file_exists($jsonFile)) {
+            return [];
+        }
+        $content = file_get_contents($jsonFile);
+        $events = json_decode($content, true) ?: [];
     }
 
-    // Fallback fichier local
-    global $jsonFile;
-    if (!file_exists($jsonFile)) {
-        return [];
-    }
-    $content = file_get_contents($jsonFile);
-    return json_decode($content, true) ?: [];
+    // Filtrer les événements passés (garder seulement aujourd'hui et futur)
+    $today = new DateTime();
+    $today->setTime(0, 0, 0);
+
+    return array_values(array_filter($events, function($event) use ($today) {
+        // Garder tous les événements récurrents
+        if (isset($event['recurrent'])) {
+            return true;
+        }
+
+        // Pour les événements à date fixe, vérifier qu'ils ne sont pas passés
+        if (isset($event['date'])) {
+            $eventDate = new DateTime($event['date']);
+            return $eventDate >= $today;
+        }
+
+        return true;
+    }));
 }
 
 // Écrire les événements

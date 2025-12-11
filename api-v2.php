@@ -40,7 +40,7 @@ function getDataClient() {
 }
 
 /**
- * Lire tous les événements
+ * Lire tous les événements (filtre les événements passés)
  */
 function getAllEvents() {
     $client = getDataClient();
@@ -48,17 +48,36 @@ function getAllEvents() {
     if ($client) {
         // V2: CalDAV
         try {
-            return $client->getEvents();
+            $events = $client->getEvents();
         } catch (Exception $e) {
             logError('Erreur CalDAV getEvents: ' . $e->getMessage());
             http_response_code(500);
             echo json_encode(['error' => 'Erreur serveur CalDAV']);
             exit;
         }
+    } else {
+        // V1: Gist/fichier
+        $events = getEventsLegacy();
     }
 
-    // V1: Gist/fichier
-    return getEventsLegacy();
+    // Filtrer les événements passés (garder seulement aujourd'hui et futur)
+    $today = new DateTime();
+    $today->setTime(0, 0, 0);
+
+    return array_values(array_filter($events, function($event) use ($today) {
+        // Garder tous les événements récurrents
+        if (isset($event['recurrent'])) {
+            return true;
+        }
+
+        // Pour les événements à date fixe, vérifier qu'ils ne sont pas passés
+        if (isset($event['date'])) {
+            $eventDate = new DateTime($event['date']);
+            return $eventDate >= $today;
+        }
+
+        return true;
+    }));
 }
 
 /**

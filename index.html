@@ -156,17 +156,9 @@
                     // Collecter tous les événements (dates fixes et récurrents)
                     const eventsForDay = [];
 
-                    // Ajouter les événements avec date fixe (seulement si date >= aujourd'hui)
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0); // Minuit aujourd'hui
-
+                    // Ajouter les événements avec date fixe
                     evenements
-                        .filter(evt => {
-                            if (evt.date !== dateStr) return false;
-                            // Exclure les événements passés (sauf pour aujourd'hui et le futur)
-                            const eventDate = new Date(evt.date + 'T00:00:00');
-                            return eventDate >= today;
-                        })
+                        .filter(evt => evt.date === dateStr)
                         .forEach(evt => eventsForDay.push(evt));
 
                     // Ajouter les événements récurrents

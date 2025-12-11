@@ -328,10 +328,6 @@
                     const eventsWithDate = [];
                     const eventsRecurrent = [];
 
-                    // Date d'aujourd'hui pour filtrer les événements passés
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-
                     events.forEach((event, index) => {
                         // Pour compatibilité V1, garder l'index si pas d'UID
                         event.eventId = event.uid || index;
@@ -339,11 +335,7 @@
                         if (event.recurrent) {
                             eventsRecurrent.push(event);
                         } else if (event.date) {
-                            // Filtrer les événements passés
-                            const eventDate = new Date(event.date + 'T00:00:00');
-                            if (eventDate >= today) {
-                                eventsWithDate.push(event);
-                            }
+                            eventsWithDate.push(event);
                         }
                     });
 
