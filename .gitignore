@@ -34,3 +34,8 @@ message-aidants.json
 .idea/
 *.sublime-project
 *.sublime-workspace
+
+# Composer
+/vendor/
+composer.phar
+composer.lock
