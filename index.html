@@ -80,7 +80,7 @@
 
         // Fonction pour charger les événements
         function loadEvents() {
-            fetch('api.php?t=' + new Date().getTime())
+            fetch('api-v2.php?t=' + new Date().getTime())
             .then(response => response.json())
             .then(evenements => {
                 // Comparer avec les événements actuels pour détecter un changement
@@ -163,7 +163,46 @@
 
                     // Ajouter les événements récurrents
                     evenements
-                        .filter(evt => evt.recurrent && evt.recurrent.includes(jour))
+                        .filter(evt => {
+                            if (!evt.recurrent) return false;
+
+                            // Format V2 CalDAV: quotidien, hebdomadaire, mensuel, annuel
+                            if (typeof evt.recurrent === 'string') {
+                                if (evt.recurrent === 'quotidien') {
+                                    return true; // Tous les jours
+                                }
+                                if (evt.recurrent === 'hebdomadaire') {
+                                    // Afficher tous les jours de la semaine pour l'instant
+                                    // TODO: utiliser DTSTART pour déterminer le jour de la semaine
+                                    return true;
+                                }
+                                if (evt.recurrent === 'mensuel') {
+                                    // Afficher le même jour du mois
+                                    if (evt.date) {
+                                        const eventDay = new Date(evt.date + 'T00:00:00').getDate();
+                                        const currentDay = date.getDate();
+                                        return eventDay === currentDay;
+                                    }
+                                    return false;
+                                }
+                                if (evt.recurrent === 'annuel') {
+                                    // Afficher le même jour et mois chaque année
+                                    if (evt.date) {
+                                        const eventDate = new Date(evt.date + 'T00:00:00');
+                                        return eventDate.getDate() === date.getDate() &&
+                                               eventDate.getMonth() === date.getMonth();
+                                    }
+                                    return false;
+                                }
+                            }
+
+                            // Format V1 legacy: array de jours ["Lundi", "Mardi"]
+                            if (Array.isArray(evt.recurrent)) {
+                                return evt.recurrent.includes(jour);
+                            }
+
+                            return false;
+                        })
                         .forEach(evt => {
                             console.log(`Événement récurrent trouvé pour ${jour}:`, evt);
                             eventsForDay.push(evt);
@@ -191,7 +230,22 @@
                                 const icon = document.createElement('div');
                                 icon.className = 'postit-recurrent-icon';
                                 icon.textContent = '∞';
-                                icon.title = 'Événement récurrent : ' + evt.recurrent.join(', ');
+
+                                // Formater le tooltip selon le type de récurrence
+                                let tooltipText = 'Événement récurrent';
+                                if (typeof evt.recurrent === 'string') {
+                                    const labels = {
+                                        'quotidien': 'Quotidien (tous les jours)',
+                                        'hebdomadaire': 'Hebdomadaire (toutes les semaines)',
+                                        'mensuel': 'Mensuel (tous les mois)',
+                                        'annuel': 'Annuel (tous les ans)'
+                                    };
+                                    tooltipText += ' : ' + (labels[evt.recurrent] || evt.recurrent);
+                                } else if (Array.isArray(evt.recurrent)) {
+                                    tooltipText += ' : ' + evt.recurrent.join(', ');
+                                }
+
+                                icon.title = tooltipText;
                                 postit.appendChild(icon);
                             }
 
