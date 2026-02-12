@@ -204,6 +204,7 @@ body.dark-mode .postit-titre {
     flex: 1;
     height: calc(50vh - 30px);
     padding: 0;
+    margin-left: 490px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     grid-auto-rows: minmax(200px, 1fr);
@@ -214,8 +215,10 @@ body.dark-mode .postit-titre {
 }
 
 /* Masquer la galerie en mode sombre */
-body.dark-mode .galerie {
-    display: none;
+body.dark-mode .galerie,
+body.dark-mode .galerie-single,
+body.dark-mode .galerie-diptych {
+    display: none !important;
 }
 
 .galerie img {
