@@ -1,3 +1,53 @@
+:root {
+    /* Couleurs mode clair */
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --table-header-bg: #2c3e50;
+    --table-header-text: white;
+    --cell-border: #ddd;
+    --today-bg: #87CEEB;
+    --info-header-bg: #ffc107;
+    --info-header-text: #333;
+    --info-cell-bg: #fff3cd;
+    --gallery-bg: #f5f5f5;
+    --postit-border: #e6d070;
+    --postit-bg: transparent;
+    --postit-text-color: #000;
+    --postit-time-color: #666;
+    --event-date-color: #2c3e50;
+    --event-time-color: #666;
+    --border-event-color: #ffe69c;
+    --title-event-color: #856404;
+    --border-top-color: #ffc107;
+    --clock-bg: #2c3e50;
+    --clock-text: white;
+}
+
+body.dark-mode {
+    /* Couleurs mode sombre */
+    --bg-color: #1a1a1a;
+    --text-color: #999999;
+    --table-header-bg: #1c2833;
+    --table-header-text: #999999;
+    --cell-border: #444;
+    --today-bg: #2c5f7a;
+    --info-header-bg: #b8860b;
+    --info-header-text: #999999;
+    --info-cell-bg: #3d3520;
+    --gallery-bg: #2a2a2a;
+    --postit-border: #555;
+    --postit-bg: #2d2d2d;
+    --postit-text-color: #888;
+    --postit-time-color: #666;
+    --event-date-color: #87CEEB;
+    --event-time-color: #666;
+    --border-event-color: #4d4520;
+    --title-event-color: #d4a72c;
+    --border-top-color: #b8860b;
+    --clock-bg: #1c2833;
+    --clock-text: #999999;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -6,34 +56,89 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Barre d'horloge en haut */
+.clock-bar {
+    width: 100%;
+    background-color: var(--clock-bg);
+    color: var(--clock-text);
+    text-align: center;
+    padding: 10px 0;
+    font-size: 2.5rem;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.1em;
+    border-bottom: 2px solid var(--cell-border);
+}
+
+/* Horloge analogique en bas à gauche */
+.analog-clock {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 450px;
+    height: 450px;
+    z-index: 1000;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+}
+
+.analog-clock svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Les aiguilles pivotent depuis le centre */
+#hour-hand,
+#minute-hand {
+    transform-origin: 100px 100px;
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Mode sombre : fond de l'horloge */
+body.dark-mode .analog-clock circle[fill="white"] {
+    fill: #2d2d2d;
+}
+
+body.dark-mode .analog-clock line,
+body.dark-mode .analog-clock circle[fill="#333"] {
+    stroke: #999;
+    fill: #999;
+}
+
+body.dark-mode .analog-clock text {
+    fill: #999;
 }
 
 /* Container pour la partie basse (galerie + infos) */
 .bottom-section {
     position: relative;
-    height: 50vh;
+    height: calc(50vh - 30px);
     display: flex;
 }
 
 table {
     width: 100%;
-    height: 50vh;
+    height: calc(50vh - 30px);
     border-collapse: collapse;
     table-layout: fixed;
 }
 
 th {
-    background-color: #2c3e50;
-    color: white;
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
     padding: 5px;
     text-align: center;
-    border: 1px solid #ddd;
+    border: 1px solid var(--cell-border);
     font-size: 1.8rem;
     line-height: 1;
 }
 
 th.aujourd-hui {
-    background-color: #87CEEB;
+    background-color: var(--today-bg);
 }
 
 th.aujourd-hui .label-aujourdhui {
@@ -48,20 +153,27 @@ th.apres-demain .label-apres-demain {
 }
 
 td {
-    border: 1px solid #ddd;
+    border: 1px solid var(--cell-border);
     padding: 8px;
     vertical-align: top;
     overflow: hidden;
+    background-color: var(--bg-color);
 }
 
 .postit {
-    border: 1px solid #e6d070;
+    border: 1px solid var(--postit-border);
     padding: 8px;
     margin: 4px 0;
     box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
     font-weight: bold;
     position: relative;
     font-size: 0.9rem;
+}
+
+/* En mode sombre, forcer le fond gris foncé pour tous les post-it */
+body.dark-mode .postit {
+    background-color: var(--postit-bg) !important;
+    color: var(--postit-text-color);
 }
 
 .postit-recurrent-icon {
@@ -75,7 +187,7 @@ td {
 .postit-heure {
     font-size: 0.85rem;
     margin-bottom: 3px;
-    color: #666;
+    color: var(--postit-time-color);
 }
 
 .postit-titre {
@@ -83,17 +195,27 @@ td {
     line-height: 1.3;
 }
 
+/* Couleur du titre du post-it en mode sombre */
+body.dark-mode .postit-titre {
+    color: var(--postit-text-color);
+}
+
 .galerie {
     flex: 1;
-    height: 50vh;
+    height: calc(50vh - 30px);
     padding: 0;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     grid-auto-rows: minmax(200px, 1fr);
     gap: 0;
     overflow: auto;
-    background-color: #f5f5f5;
+    background-color: var(--gallery-bg);
     align-content: stretch;
+}
+
+/* Masquer la galerie en mode sombre */
+body.dark-mode .galerie {
+    display: none;
 }
 
 .galerie img {
@@ -138,21 +260,21 @@ td {
 }
 
 th.info-header {
-    background-color: #ffc107;
-    color: #333;
+    background-color: var(--info-header-bg);
+    color: var(--info-header-text);
     font-weight: bold;
     font-size: 1.6rem;
 }
 
 td.info-cell {
-    background-color: #fff3cd;
+    background-color: var(--info-cell-bg);
     padding: 15px;
     vertical-align: top;
 }
 
 .infos-texte {
     font-size: 1.5rem;
-    color: #333;
+    color: var(--text-color);
     line-height: 1.5;
     white-space: pre-wrap;
     margin-bottom: 20px;
@@ -161,21 +283,21 @@ td.info-cell {
 .prochains-events {
     margin-top: 15px;
     padding-top: 15px;
-    border-top: 2px solid #ffc107;
+    border-top: 2px solid var(--border-top-color);
 }
 
 .prochains-events-titre {
     font-weight: bold;
     font-size: 1.2rem;
     margin-bottom: 10px;
-    color: #856404;
+    color: var(--title-event-color);
 }
 
 .prochain-event {
     padding: 8px 0;
     font-size: 1rem;
     line-height: 1.4;
-    border-bottom: 1px solid #ffe69c;
+    border-bottom: 1px solid var(--border-event-color);
 }
 
 .prochain-event:last-child {
@@ -184,16 +306,16 @@ td.info-cell {
 
 .event-date {
     font-weight: bold;
-    color: #2c3e50;
+    color: var(--event-date-color);
 }
 
 .event-heure {
-    color: #666;
+    color: var(--event-time-color);
     font-weight: 600;
 }
 
 .event-titre {
-    color: #333;
+    color: var(--text-color);
 }
 
 @media (max-width: 768px) {

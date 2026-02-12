@@ -7,6 +7,39 @@
     <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
+    <div id="clock-bar" class="clock-bar"></div>
+
+    <!-- Horloge analogique -->
+    <div class="analog-clock">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- Cadran -->
+            <circle cx="100" cy="100" r="95" fill="white" stroke="#333" stroke-width="3"/>
+
+            <!-- Chiffres des heures -->
+            <text x="100" y="20" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#333">12</text>
+            <text x="140" y="31" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#333">1</text>
+            <text x="169" y="60" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#333">2</text>
+            <text x="180" y="100" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#333">3</text>
+            <text x="169" y="140" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#333">4</text>
+            <text x="140" y="169" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#333">5</text>
+            <text x="100" y="180" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#333">6</text>
+            <text x="60" y="169" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#333">7</text>
+            <text x="31" y="140" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#333">8</text>
+            <text x="20" y="100" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#333">9</text>
+            <text x="31" y="60" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#333">10</text>
+            <text x="60" y="31" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#333">11</text>
+
+            <!-- Aiguille des heures -->
+            <line id="hour-hand" x1="100" y1="100" x2="100" y2="50" stroke="#333" stroke-width="6" stroke-linecap="round"/>
+
+            <!-- Aiguille des minutes -->
+            <line id="minute-hand" x1="100" y1="100" x2="100" y2="30" stroke="#666" stroke-width="4" stroke-linecap="round"/>
+
+            <!-- Centre -->
+            <circle cx="100" cy="100" r="5" fill="#333"/>
+        </svg>
+    </div>
+
     <table>
         <thead>
             <tr id="dates"></tr>
@@ -28,6 +61,82 @@
             div.textContent = text;
             return div.innerHTML;
         }
+
+        // Fonction pour mettre à jour l'horloge numérique
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+
+            const clockBar = document.getElementById('clock-bar');
+            if (clockBar) {
+                clockBar.textContent = `${hours}:${minutes}`;
+            }
+        }
+
+        // Fonction pour mettre à jour l'horloge analogique
+        function updateAnalogClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+
+            // Calculer les angles (0° = 12h, sens horaire)
+            const minuteAngle = (minutes * 6); // 6° par minute
+            const hourAngle = ((hours % 12) * 30) + (minutes * 0.5); // 30° par heure + mouvement fluide
+
+            // Appliquer les rotations
+            const hourHand = document.getElementById('hour-hand');
+            const minuteHand = document.getElementById('minute-hand');
+
+            if (hourHand) hourHand.style.transform = `rotate(${hourAngle}deg)`;
+            if (minuteHand) minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+        }
+
+        // Mettre à jour les horloges immédiatement
+        updateClock();
+        updateAnalogClock();
+
+        // Mettre à jour les horloges toutes les secondes
+        setInterval(() => {
+            updateClock();
+            updateAnalogClock();
+        }, 1000);
+
+        // Fonction pour gérer le mode sombre automatique (20h - 9h)
+        function updateDarkMode() {
+            // Vérifier si un mode est forcé via l'URL (?mode=sombre ou ?mode=clair)
+            const urlParams = new URLSearchParams(window.location.search);
+            const modeParam = urlParams.get('mode');
+
+            if (modeParam === 'sombre') {
+                // Mode sombre forcé
+                document.body.classList.add('dark-mode');
+                return;
+            } else if (modeParam === 'clair') {
+                // Mode clair forcé
+                document.body.classList.remove('dark-mode');
+                return;
+            }
+
+            // Sinon, utiliser la logique horaire normale
+            const now = new Date();
+            const hour = now.getHours();
+
+            // Mode sombre actif de 20h à 9h (20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8)
+            const isDarkModeTime = hour >= 20 || hour < 9;
+
+            if (isDarkModeTime) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        }
+
+        // Appliquer le mode sombre au chargement
+        updateDarkMode();
+
+        // Vérifier toutes les minutes si on doit basculer le mode
+        setInterval(updateDarkMode, 60000);
 
         // Détecter l'environnement et mettre à jour le titre
         fetch('env.php?t=' + new Date().getTime())
